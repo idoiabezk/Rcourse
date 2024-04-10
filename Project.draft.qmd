@@ -553,6 +553,7 @@ TESTINGB$Chain_length <- sub(".*-C(9|10|11|12|13|14|15|16|17)$", "\\1", TESTINGB
 )
 TESTINGB$Chain_length <- paste("C",sub(".*-C(9|10|11|12|13|14|15|16|17)$", "\\1", TESTINGB$"Molecule List")) #Change the column chain Length column so it fits the following script and the one of the standards
 
+
 #Rename the column Molecule to Homologue so it fits the next script and the one of the standards
 colnames(TESTINGB)[which(colnames(TESTINGB) == "Molecule")] <- "Homologue"
 

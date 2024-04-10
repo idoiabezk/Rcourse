@@ -6,10 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Idoia Beloki Ezker">
-<meta name="dcterms.date" content="2024-02-13">
 
-<title>R course book</title>
+<title>R course book - 6&nbsp; Data tidying</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -32,7 +30,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./intro.html" rel="next">
+<link href="./Chapter6.html" rel="next">
+<link href="./Chapter4.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -74,7 +73,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Index</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./Chapter5.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Data tidying</span></a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -101,7 +100,7 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Index</span></a>
   </div>
 </li>
@@ -137,7 +136,7 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./Chapter5.html" class="sidebar-item-text sidebar-link">
+  <a href="./Chapter5.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Data tidying</span></span></a>
   </div>
 </li>
@@ -175,7 +174,10 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#index" id="toc-index" class="nav-link active" data-scroll-target="#index">Index</a></li>
+  <li><a href="#tidy-data" id="toc-tidy-data" class="nav-link active" data-scroll-target="#tidy-data"><span class="header-section-number">6.1</span> Tidy data:</a></li>
+  <li><a href="#lengthening-data" id="toc-lengthening-data" class="nav-link" data-scroll-target="#lengthening-data"><span class="header-section-number">6.2</span> Lengthening data:</a></li>
+  <li><a href="#widering-data" id="toc-widering-data" class="nav-link" data-scroll-target="#widering-data"><span class="header-section-number">6.3</span> Widering data:</a></li>
+  <li><a href="#other-useful-functions" id="toc-other-useful-functions" class="nav-link" data-scroll-target="#other-useful-functions"><span class="header-section-number">6.4</span> Other useful functions:</a></li>
   </ul>
 </nav>
     </div>
@@ -184,26 +186,14 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">R course book</h1>
+<h1 class="title"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Data tidying</span></h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-             <p>Idoia Beloki Ezker </p>
-          </div>
-  </div>
     
-    <div>
-    <div class="quarto-title-meta-heading">Published</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date">February 13, 2024</p>
-    </div>
-  </div>
   
     
   </div>
@@ -211,18 +201,38 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
-<section id="index" class="level1 unnumbered">
-<h1 class="unnumbered">Index</h1>
-<p>The different sections in the book include:</p>
+<p><strong>This fifth chapter describes how to organize the data so it is in a suitable format to operate with it in R.</strong></p>
+<section id="tidy-data" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="tidy-data"><span class="header-section-number">6.1</span> Tidy data:</h2>
+<p>We say that we have tidy data when: - Each variable is a column, and each column is a variable</p>
 <ul>
-<li><p><strong>Introduction</strong></p></li>
-<li><p><strong>Chapter 1:</strong> Getting familiar with R programming</p></li>
-<li><p><strong>Chapter 2:</strong> Hands-on R programming</p></li>
-<li><p><strong>Chapter 3:</strong> Working flows on R programming</p></li>
-<li><p><strong>Chapter 4:</strong> Data transformation</p></li>
-<li><p><strong>Chapter 5:</strong> Data tidying</p></li>
-<li><p><strong>Chapter 6:</strong> Exercise 1</p></li>
-<li><p><strong>Chapter 7:</strong> Project</p></li>
+<li><p>Each observation is a row, and each row is an observation</p></li>
+<li><p>Each value is a cell, and each cell is a value</p></li>
+</ul>
+</section>
+<section id="lengthening-data" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="lengthening-data"><span class="header-section-number">6.2</span> Lengthening data:</h2>
+<p>“pivot_longer()” is a function that helps us to tidy the data. The arguments for this function are:</p>
+<ul>
+<li><p>“cols”: specifies which columns need to be pivoted</p></li>
+<li><p>“names_to”: names the variables stored in the column names</p></li>
+<li><p>“values_drop_na = TRUE” removes missing values</p></li>
+</ul>
+</section>
+<section id="widering-data" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="widering-data"><span class="header-section-number">6.3</span> Widering data:</h2>
+<p>“pivot_longer()” increases the columns and reduces the rows. It helps when an observation is spread across multiple rows. For using it we need to provide where to take the data from:</p>
+<ul>
+<li><p>“names_from = ajfdkl”</p></li>
+<li><p>“values_from = adkfdofjio”</p></li>
+<li><p>“id_cols = iadjoid”</p></li>
+</ul>
+</section>
+<section id="other-useful-functions" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="other-useful-functions"><span class="header-section-number">6.4</span> Other useful functions:</h2>
+<ul>
+<li><p>“parse_number()” will extract the first number of a string and ignore the text.</p></li>
+<li><p>“names_sep =”_“” will allow us to extract some information from a name and make it a variable.</p></li>
 </ul>
 
 
@@ -464,10 +474,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
+      <a href="./Chapter4.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Data transformation</span></span>
+      </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./intro.html" class="pagination-link">
-        <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./Chapter6.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Exercise 1: Data plotting and transformations</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

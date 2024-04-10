@@ -10,6 +10,12 @@ book:
     - index.qmd
     - intro.qmd
     - Chapter1.qmd
+    - Chapter2.qmd
+    - Chapter3.qmd
+    - Chapter4.qmd
+    - Chapter5.qmd
+    - Chapter6.qmd
+    - FinalProject.qmd
     - summary.qmd
     - references.qmd
 

@@ -6,10 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Idoia Beloki Ezker">
-<meta name="dcterms.date" content="2024-02-13">
 
-<title>R course book</title>
+<title>R course book - 5&nbsp; Data transformation</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -32,7 +30,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./intro.html" rel="next">
+<link href="./Chapter5.html" rel="next">
+<link href="./Chapter3.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -74,7 +73,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Index</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./Chapter4.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Data transformation</span></a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -101,7 +100,7 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Index</span></a>
   </div>
 </li>
@@ -131,7 +130,7 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./Chapter4.html" class="sidebar-item-text sidebar-link">
+  <a href="./Chapter4.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Data transformation</span></span></a>
   </div>
 </li>
@@ -175,7 +174,13 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#index" id="toc-index" class="nav-link active" data-scroll-target="#index">Index</a></li>
+  <li><a href="#the-pipe" id="toc-the-pipe" class="nav-link active" data-scroll-target="#the-pipe"><span class="header-section-number">5.1</span> The pipe ” |&gt; ”</a></li>
+  <li><a href="#dplyr-function-groups" id="toc-dplyr-function-groups" class="nav-link" data-scroll-target="#dplyr-function-groups"><span class="header-section-number">5.2</span> “dplyr” function groups</a>
+  <ul class="collapse">
+  <li><a href="#rows" id="toc-rows" class="nav-link" data-scroll-target="#rows"><span class="header-section-number">5.2.1</span> Rows:</a></li>
+  <li><a href="#columns" id="toc-columns" class="nav-link" data-scroll-target="#columns"><span class="header-section-number">5.2.2</span> Columns:</a></li>
+  <li><a href="#groups" id="toc-groups" class="nav-link" data-scroll-target="#groups"><span class="header-section-number">5.2.3</span> Groups:</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -184,26 +189,14 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">R course book</h1>
+<h1 class="title"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Data transformation</span></h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-             <p>Idoia Beloki Ezker </p>
-          </div>
-  </div>
     
-    <div>
-    <div class="quarto-title-meta-heading">Published</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date">February 13, 2024</p>
-    </div>
-  </div>
   
     
   </div>
@@ -211,21 +204,96 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
-<section id="index" class="level1 unnumbered">
-<h1 class="unnumbered">Index</h1>
-<p>The different sections in the book include:</p>
+<p><strong>This fourth chapter summarizes some functions “that will help when”dplyr” functions.</strong></p>
+<p>It is important to know that the “dplyr” function overwrites other functions. In case we want to use the basic functions we should use: “stats::filter()” and “stats::log()”; and if we want to be precise about which function of the package has the priority we can use: “packagename::functionname()”.</p>
+<p>The package “<em>tidyverse</em>” instead of “data frames”, uses “tibbes” that are a special type of data frame that allows one to see a summary of the data. In case we want to see all of the columns we should use “glimpse()”.</p>
+<p>All the “dplyr” basic functions have three elements in common:</p>
 <ul>
-<li><p><strong>Introduction</strong></p></li>
-<li><p><strong>Chapter 1:</strong> Getting familiar with R programming</p></li>
-<li><p><strong>Chapter 2:</strong> Hands-on R programming</p></li>
-<li><p><strong>Chapter 3:</strong> Working flows on R programming</p></li>
-<li><p><strong>Chapter 4:</strong> Data transformation</p></li>
-<li><p><strong>Chapter 5:</strong> Data tidying</p></li>
-<li><p><strong>Chapter 6:</strong> Exercise 1</p></li>
-<li><p><strong>Chapter 7:</strong> Project</p></li>
+<li><p>The first argument is always the data frame.</p></li>
+<li><p>The subsequent arguments refer to the columns that we want to operate on, and we refer to them by using the name of the variable.</p></li>
+<li><p>The output is always a data frame.</p></li>
 </ul>
+<section id="the-pipe" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="the-pipe"><span class="header-section-number">5.1</span> The pipe ” |&gt; ”</h2>
+<p>Before getting into the different functions of “tidyverse”, we need to describe the “pipe”. The pipes take what is on the left and pass it along to the function on the right. For example, it is the same to write ” x |&gt; f(y)” and “f(x,y)”. The pipe is very useful to combine different functions and to avoid creating new objects.</p>
+<p>The shortcut to add the pipe is “ctrl + shift + M”.</p>
+</section>
+<section id="dplyr-function-groups" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="dplyr-function-groups"><span class="header-section-number">5.2</span> “dplyr” function groups</h2>
+<p>All the “dplyr” functions are organized into four groups based on what they operate on rows, columns, groups, and tables. All these functions will be used in examples in the next exercise.</p>
+<section id="rows" class="level3" data-number="5.2.1">
+<h3 data-number="5.2.1" class="anchored" data-anchor-id="rows"><span class="header-section-number">5.2.1</span> Rows:</h3>
+<section id="filter" class="level4" data-number="5.2.1.1">
+<h4 data-number="5.2.1.1" class="anchored" data-anchor-id="filter"><span class="header-section-number">5.2.1.1</span> Filter ():</h4>
+<p>Changes in <strong>which rows are present</strong> without changing the order of the rows. It allows us to keep rows based on the values of the columns.</p>
+<p>Note that “=” does not mean equal to, if we want to input equal to we need to write “==”.</p>
+</section>
+<section id="arrange" class="level4" data-number="5.2.1.2">
+<h4 data-number="5.2.1.2" class="anchored" data-anchor-id="arrange"><span class="header-section-number">5.2.1.2</span> Arrange ():</h4>
+<p>Changes <strong>the order of the rows</strong> without changing which ones are present. Note that it does it based on the values of the columns. When inputting more than one column, the function will operate based on the order in which we write them.</p>
+<p>We can use “desc()” on a column inside of “arrange ()” to reorder the data frame based on the values in that column from the biggest to the smallest.</p>
+</section>
+<section id="distinct" class="level4" data-number="5.2.1.3">
+<h4 data-number="5.2.1.3" class="anchored" data-anchor-id="distinct"><span class="header-section-number">5.2.1.3</span> Distinct ():</h4>
+<p>Finds rows with unique values and can also modify the columns.</p>
+<p>If we want to keep other columns when filtering unique rows, we can use “keep_all = TRUE”. If we use “sort = TRUE” will arrange them in a descending order.</p>
+</section>
+</section>
+<section id="columns" class="level3" data-number="5.2.2">
+<h3 data-number="5.2.2" class="anchored" data-anchor-id="columns"><span class="header-section-number">5.2.2</span> Columns:</h3>
+<section id="mutate" class="level4" data-number="5.2.2.1">
+<h4 data-number="5.2.2.1" class="anchored" data-anchor-id="mutate"><span class="header-section-number">5.2.2.1</span> Mutate ():</h4>
+<p>Creates more columns that are derived from the original ones. It will add the new variables at the right of the ones that we already had, if we want them at the left we need to write: “.before”, and if we want them before and after: “.after”. Also, we need to include “.keep” for the ones that we want to keep.</p>
+</section>
+<section id="select" class="level4" data-number="5.2.2.2">
+<h4 data-number="5.2.2.2" class="anchored" data-anchor-id="select"><span class="header-section-number">5.2.2.2</span> Select ():</h4>
+<p>Changes in which columns are present, act like “zooming” in a variable. We have different ways how we can select the columns: - By the name of the column - All the columns between 2 columns: “nameColumnA:nameColumnB” - All the columns except some: “!nameColumnA:nameColumnB” - The columns that the same type such as numeric, or characters</p>
+</section>
+<section id="rename" class="level4" data-number="5.2.2.3">
+<h4 data-number="5.2.2.3" class="anchored" data-anchor-id="rename"><span class="header-section-number">5.2.2.3</span> Rename ():</h4>
+<p>Change the name of the column. We can easily clean the names of the column by: “janitor::clean_names()”.</p>
+</section>
+<section id="relocate" class="level4" data-number="5.2.2.4">
+<h4 data-number="5.2.2.4" class="anchored" data-anchor-id="relocate"><span class="header-section-number">5.2.2.4</span> Relocate ():</h4>
+<p>Changes the position of the columns.</p>
+</section>
+</section>
+<section id="groups" class="level3" data-number="5.2.3">
+<h3 data-number="5.2.3" class="anchored" data-anchor-id="groups"><span class="header-section-number">5.2.3</span> Groups:</h3>
+<section id="group_by" class="level4" data-number="5.2.3.1">
+<h4 data-number="5.2.3.1" class="anchored" data-anchor-id="group_by"><span class="header-section-number">5.2.3.1</span> Group_by ():</h4>
+<p>To divide the data set into groups that are mean full for the analysis.</p>
+</section>
+<section id="summarize" class="level4" data-number="5.2.3.2">
+<h4 data-number="5.2.3.2" class="anchored" data-anchor-id="summarize"><span class="header-section-number">5.2.3.2</span> Summarize ():</h4>
+<p>To calculate a single summary statistics. It reduces the data frame to have a single row for each group. If we want to know the number of rows taken for each group we can use “n()#.</p>
+</section>
+<section id="slice" class="level4" data-number="5.2.3.3">
+<h4 data-number="5.2.3.3" class="anchored" data-anchor-id="slice"><span class="header-section-number">5.2.3.3</span> Slice ():</h4>
+<p>This function allows us to extract specific rows within each group:</p>
+<ul>
+<li><p>“df |&gt; slice_ head (n =1)” Takes the first row of each group</p></li>
+<li><p>“df |&gt; slice_ tail (n =1)” Takes the last row of each group</p></li>
+<li><p>“df |&gt; slice_ min (x, n =1)” Takes the row the smallest value of x.</p></li>
+<li><p>“df |&gt; slice_ max (x, n =1)” Takes the row the biggest value of x.</p></li>
+<li><p>“df |&gt; slice_ sample (n =1)” Takes a random row. If we write “n=1” it will give us one row, but if we can more we can write another number; we can also write “prop =0.1” and this will give us the %10 of the rows.</p></li>
+</ul>
+</section>
+<section id="grouping-by-multiple-variables" class="level4" data-number="5.2.3.4">
+<h4 data-number="5.2.3.4" class="anchored" data-anchor-id="grouping-by-multiple-variables"><span class="header-section-number">5.2.3.4</span> Grouping by multiple variables ():</h4>
+<p>Creates groups using more than one variable.</p>
+</section>
+<section id="ungrouping" class="level4" data-number="5.2.3.5">
+<h4 data-number="5.2.3.5" class="anchored" data-anchor-id="ungrouping"><span class="header-section-number">5.2.3.5</span> Ungrouping:</h4>
+<p>We can use “ungroup()” to remove some grouping.</p>
+</section>
+<section id="by" class="level4" data-number="5.2.3.6">
+<h4 data-number="5.2.3.6" class="anchored" data-anchor-id="by"><span class="header-section-number">5.2.3.6</span> “.by” ():</h4>
+<p>“group_by()” and “ungroup()” are not groing away.</p>
 
 
+</section>
+</section>
 </section>
 
 </main> <!-- /main -->
@@ -464,10 +532,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
+      <a href="./Chapter3.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Working flows on R programming</span></span>
+      </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./intro.html" class="pagination-link">
-        <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./Chapter5.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Data tidying</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
