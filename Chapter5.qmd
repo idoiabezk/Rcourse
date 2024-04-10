@@ -1,0 +1,43 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Data tidying
+
+**This fifth chapter describes how to organize the data so it is in a suitable format to operate with it in R.**
+
+## Tidy data:
+
+We say that we have tidy data when: - Each variable is a column, and each column is a variable
+
+-   Each observation is a row, and each row is an observation
+
+-   Each value is a cell, and each cell is a value
+
+## Lengthening data:
+
+"pivot_longer()" is a function that helps us to tidy the data. The arguments for this function are:
+
+-   "cols": specifies which columns need to be pivoted
+
+-   "names_to": names the variables stored in the column names
+
+-   "values_drop_na = TRUE" removes missing values
+
+## Widering data:
+
+"pivot_longer()" increases the columns and reduces the rows. It helps when an observation is spread across multiple rows. For using it we need to provide where to take the data from:
+
+-   "names_from = ajfdkl"
+
+-   "values_from = adkfdofjio"
+
+-   "id_cols = iadjoid"
+
+## Other useful functions:
+
+-   "parse_number()" will extract the first number of a string and ignore the text.
+
+-   "names_sep ="\_"" will allow us to extract some information from a name and make it a variable.

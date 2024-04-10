@@ -1,0 +1,12 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Introduction
+
+This book compiles the information acquired at the PhD course on R for environmental chemistry data analysis. The aim of this course is to learn how use use R studio and be able to treat and visualize environmental data. 
+
+
+The first chapters of this book includes the basic knowledge needed to understand how to program in R studio. In the next sections how to plot the data is compiled, for instance, how to use *Tidyverse* and how to create interactive plots are described. In the next part of this book how to perform statistic test in R studio will be discussed, and finally, how to interact with *ChatGPT* is included. 

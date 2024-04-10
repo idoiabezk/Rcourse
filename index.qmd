@@ -1,0 +1,28 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Index {.unnumbered}
+
+The different sections in the book include:
+
+-   **Introduction**
+
+-   **Chapter 1:** Getting familiar with R programming
+
+-   **Chapter 2:** Hands-on R programming
+
+-   **Chapter 3:** Working flows on R programming
+
+-   **Chapter 4:** Data transformation
+
+-   **Chapter 5:** Data tidying
+
+-   **Chapter 6:** Exercise 1
+
+-   **Chapter 7:** Project
+
+
+

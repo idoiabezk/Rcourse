@@ -1,0 +1,25 @@
+project:
+  type: book
+  output-dir: docs
+
+book:
+  title: "R course book"
+  author: "Idoia Beloki Ezker"
+  date: "2024-02-13"
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - Chapter1.qmd
+    - summary.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt
+
+editor: visual
+

@@ -1,0 +1,141 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Working flows on R programming
+
+**This third chapter takes the first steps into how Rstudio operates the different functions that we input. This section goes through the if and else statement, the S3 system, the loops, and the speed.**
+
+## **Useful operations**
+
+### **"If" and "Else" statements**
+
+-   The *"**if**"* statement allows us to tell R to a task only when a condition in "TRUE". For example:
+
+```{r}
+num<-2#define what why want to study
+
+if(num>0){ #if our num is bigger than zero do...
+  num<-num-1 #...num-1
+}
+num
+```
+
+-   The "***else**"* statement allows us to include a second statement, in other words,"if this is not TRUE do something else", for example:
+
+```{r}
+num<-2#define what why want to study
+
+if(num<0){ #if our num is smaller than zero do...
+  num<-num-1 #...num-1
+} else { #in the case that num is NOT smaller than zero do...
+  num<-num+1 #... do num + 1
+}
+num
+```
+
+For the cases in the "if" statement is TRUE, R will ignore the "else" one; "else" will only be applied when the "if" statement is FALSE.
+
+### **Others**
+
+-   For isolating the decimal we can use *"**trunc()**"*:
+
+```{r}
+t<-3.14
+trunc(t)
+```
+
+-   The double *"**&&**"* and *"**\|\|**"* behave like "&" and "\|", but can sometimes be more efficient: the double operator will not evaluate the second test if the first makes the result clear.
+
+-   ***Lookup tables*** are used for creating a vector between two variables, for example:
+
+```{r}
+WorkingYears<-c("Victoria"=0.17, "Thanh"=25, "Idoia"=2.17)
+WorkingYears["Thanh"]#it will allow us to look at the variable "Thanh" and the values
+```
+
+We could also write:
+
+```{r}
+unname(WorkingYears["Thanh"]) #we can look at the value of the variable "Thanh"
+```
+
+-   *"**expand.grid**"*: for a quick write out of every combination of elements in n vectors, and further determine the probability of each combination, for example:
+
+```{r}
+a<- 1:6
+A<-expand.grid(a,a)
+A
+```
+
+## **S3 system**
+
+Depending on the vector class (attributes) R will display it differently, for example:
+
+```{r}
+num2<-10000
+print(num2)
+```
+
+But if we do:
+
+```{r}
+class(num2)<- c("POSIXct","POSIXt")
+print(num2)
+```
+
+Depending on the class R reads the same value as a number or as a date. Every time we code something, R has to examine the type of our input, and pass to the class needed so the output can be generated. This is done by "UseMethod", this will for instance examine an imputed object in as"POSIXct" class, and pass it to "print.POSIXct" so R can print the result, where #print# is the function and "POSIXct" the class. This is always happening in R and if we want to see every method written for a class we have to use "method(class="factor")".
+
+## **The loops**
+
+A loop is a programming construct used to repeatedly execute a block of code until a certain condition is met. There are different types of loops in R, including ***for*** loops, ***while*** loops, and ***repeat*** loops.
+
+-   *"**For**"* tells R to do "this" for every value of "that". It is very useful for connecting a piece of a code with each element in a set. Note that R runs a loop in which ever environment, so if the loop uses objects that already exist in another environment, R will overwrite them.
+
+```{r}
+for (value in c("I", "am", "Idoia")) {
+  print("IBE") #it will print for every value in the vector
+}
+```
+
+-   *"**While**"* reruns a chunk while a certain condition remains TRUE, for example:
+
+```{r}
+num<--3
+while(num<0){
+  num<-num+2
+}
+num
+```
+
+Note that is the condition, in the case that "num" is smaller than 0, evaluates FALSE the "while" loop will stop.
+
+-   *"**Repeat**"* allows us to repeat a chunk of code until we tell R to stop by hitting Escape or by clicking on the stop-sign icon at the top of the RStudio console pane. For example:
+
+```{r}
+plays_till_broke <- function(start_with) {
+  cash <- start_with
+  n <- 0
+  repeat { #we tell to do it again until...
+    cash <- cash - 1 
+    n <- n + 1
+    if (cash <= 0) {
+      break #...we tell to stop
+    }
+  }
+  n
+}
+plays_till_broke(100)
+```
+
+## **The speed**
+
+Rstudio operates the fastest with ***vectorial*** data, this means that it will do the quickest the logical tests, subsetting, and element-wise execution.
+
+For writing a vectorial code: 1) use vectorized codes ("\<-") 2) use logical subsetting to handle parallel cases.
+
+Note that the loop "for" operates very slow, and if we do "abs_loop" R uses the "for" loop to manipulate each element of the vector one at the time. Therefore, it is better to use the vectorized version of it: "abs_set".
+
+Remember that R will do the function in the brackets before and then the one out.

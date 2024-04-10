@@ -1,0 +1,313 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Hands-on R programming
+
+**This second chapter goes through several ways of imputing the data in R, the different notations, how to deal when values are missing and the environments.**
+
+## **R objects**
+
+When talk about R objects we are referring to the data set. The different ways of defining our data set are described below.
+
+### **Vectors**
+
+Vectors can only save one-dimension data and only one type of data. We have different types of vectors, such as, numerical, text and logical, look at the examples below:
+
+```{r}
+v1 <- c(1,2,3,4,5,6) #numerical
+v1
+```
+
+```{r}
+v2 <- c("I", "am", "Idoia") #text
+v2
+```
+
+```{r}
+v3 <- c(TRUE, FALSE, TRUE) #logical
+v3
+```
+
+Note that R will be able to do mathematical operations with vectors that contain numerical values, but not with the ones that have text. If we want to check is an object is a vector or not, we can write "is.vector" and if we want to know the length of a vector "length" will give it:
+
+```{r}
+is.vector(v1)
+```
+
+```{r}
+length(v1)
+```
+
+Keep in mind that a vector can also contain just one value.
+
+#### **Attributes**
+
+Attributes are pieces of information that we can attach to a vector, we can look at them by "attributes(vector)", where vector should be substituted by the name of the vector that we want to check. For example, if we want to attributed names to the values of the vector "v1" we can write an attribute to them:
+
+```{r}
+names(v1)<- c("one", "two", "three", "four", "five", "six") #names if the attribute that we want to add and in brackets the vector that we want to add them to
+attributes(v1) #will show us the attributes of the vector "v1"
+```
+
+R will display the attributed is we just look at the vector too:
+
+```{r}
+v1
+```
+
+We can also remove the attributes from a vector:
+
+```{r}
+names(v1) <- NULL
+```
+
+If now look at the vector, the names of the values won't be there anymore:
+
+```{r}
+v1
+```
+
+### **Matrices**
+
+Matrices are used for storing values in two dimensions. We can for example transform a vector into a matrix by attributing two dimensions:
+
+```{r}
+dim(v1) <- c(2,3)
+v1
+```
+
+R will fill in the matrix column by column by default, if we want to fill it by row we have to set up "byrow = TRUE".
+
+```{r}
+m1 <- matrix(v1, nrow =2) #it will fill it by column
+m1
+```
+
+```{r}
+m2 <- matrix(v1, nrow =2, byrow = TRUE) #it will fill it by row
+m2
+```
+
+### **Lists**
+
+Lists are data structures that can contain elements of different types (such as vectors, matrices, other lists, functions, etc.) in a single object. Note that the elements are not grouped together, and so, it allows us to have vectors of different lengths and characteristics, an example:
+
+```{r}
+l1 <- list(10:30, "Idoia", list(TRUE, FALSE))
+l1
+```
+
+### **Data frames**
+
+Data frames are the two dimensional version of a list, they group vectors together into a two-dimensional table, where each vector becomes a column in the table. Therefore, we must have the same type of data in each column, but we can have different types of data between several columns, such as:
+
+```{r}
+df1 <- data.frame(People = c("Victoria", "Thanh", "Idoia"),  
+  Position = c("Student", "Boss", "Student"), YearsWorking = c(0.17, 25, 2.17))
+df1
+```
+
+As it can be seen in the previous example, a data frame allows us to give names to the different vectors that we have, in this case "People", "Position" and "YearsWorking".
+
+### **Arrays**
+
+Arrays are used for storing values of the same data type in multiple dimensions, for example to sort values into a 3 dimensional cube, like:
+
+```{r}
+ar1<- array(c(11:14,21:24,31:34), dim = c(2,2,3))
+ar1
+```
+
+### **Playing with the objects**
+
+#### **Class**
+
+Class refers to the type or category of an object, it will tell us what type if structure do we have:
+
+```{r}
+class(df1)
+```
+
+Knowing the class of the data might be very useful in some occasions, such as with the dates the dates. In this case we have is a numerical vector, it is displayed like a text. This is because the class of the data represent the dates ans times are "POSIXct" AND "POSIXt", for example:
+
+```{r}
+now <- Sys.time()
+now
+typeof(now)
+
+```
+
+*Double refers to the numerical vectors*
+
+```{r}
+class(now)
+```
+
+Changing the class of a vector might be very useful when we want to categorize our values too. Is we have for instance a vector that contains "text", but we want to sort it into categories, we can use the function "factor()" that will allow us to change the class of our vector from text to factors, for instance:
+
+```{r}
+v4<- c("male", "female", "male")
+class(v4)
+```
+
+```{r}
+gender <- factor(v4)
+attributes(gender)
+```
+
+Now we have our vector into categories:
+
+```{r}
+unclass(gender) #it will display our data into the categories 1 and 2
+```
+
+#### **Coercion**
+
+In R, coercion refers to the process of converting an object from one data type or class to another.
+
+R always follows the same rules when it coerces data types:
+
+-   If a character string is present in a vector, R will convert everything else in the vector to character strings.
+-   If a vector only contains logicals and numbers, R will convert the logicals to numbers (every TRUE becomes a 1, and every FALSE becomes a 0).
+
+## **Notation**
+
+Depending on the notation that we use in our commands R will realize one task or another, therefore it is very important to be cautious when writing the code.
+
+### **Extracting values from a data frame**
+
+If we want to extract on specific value from a data frame, we should use the \[\] instead of (), for example:
+
+```{r}
+df1[2,3] #[a,b] where a=row and b=column
+```
+
+We also use it for extracting more than one value, such as:
+
+```{r}
+df1[2,c(2,3)]
+```
+
+We can use to create a new data frame out of the previous one:
+
+```{r}
+df2<- df1[1:2,1:2]
+df2
+```
+
+Note that if we extract only one column, we will get a vector instead.
+
+We can also apply this principle in the opposite direction, in other words, we can extract everything but a value for instance:
+
+```{r}
+df1[1:3,-2]
+```
+
+We could leave a blank space, this will allow us to extract everything in the dimension:
+
+```{r}
+df1[1,]#it will extract everything in the first row
+```
+
+Note that we can also use logical vectors and extract elements by name.
+
+### **Extracting columns from a data frame**
+
+If we want to extract a column from a data frame we can also use the"\$" sign, for example:
+
+```{r}
+df1$People #from the data frame "df1", the column "People"
+```
+
+Note that R will return the values as a vector.
+
+Another option for extracting a column is to use the double "\[\[\]\]", it will act the same way as the "\$" sign.
+
+## **Modifying values**
+
+### **Changing values**
+
+We can change the values from our data, for instance we can change one of the values of a numeric vector by renaming it:
+
+```{r}
+v5<- c(0,0,0,0,0,0)
+v5[1]<-1000 #we select the first value of the vector "v5" and we replace it by "1000"
+v5
+```
+
+We can apply the same principle to replace multiple variables:
+
+```{r}
+v5[c(1,2,3)]<-c(1,1,1)
+v5
+```
+
+Another option could be to add more variables:
+
+```{r}
+v5[7]<-0 #we select the 7th value of the vector v5 which is empty and replace it for a 0
+v5
+```
+
+This principle can also be applied to remove some values as well:
+
+```{r}
+df1$Position<-NULL #We select the column "Position" from the data frame "df1" and delete it
+df1
+```
+
+### **Logical subsetting**
+
+Logical tests refer to evaluating an expression to determine whether it is true or false, here are some of the most used logical operators:
+
+-   *"\>"*: is it greater than?
+-   *"\>=*: is it greater or equal than?
+-   *"\<"*: is it less than?
+-   *"\<=*: is it less or equal than?
+-   *"==*: is it equal to?
+-   *"!=*: is not equal to?
+-   *"%in%*: is it in the group?
+
+Some examples:
+
+```{r}
+3<2 #is 3 less than 2?
+```
+
+```{r}
+3 %in% c(1,2,3) #is 3 in the vector that is in the right?
+```
+
+```{r}
+c(1,2,3)%in%c(3,4,5) #%in% doesn't do element-wise execution, it will provide is the values of the vector to the left are any of the values of the vector to the right
+```
+
+### **Boolean operators**
+
+The boolean operators "&" and "\|" collapse the results of multiple logical tests into a sinlge TRUE or FALSE, for example:
+
+```{r}
+cond1<-2<3
+cond2<-3<3
+cond1&cond2 #are "cond1" and "cond2" true?
+```
+
+Here are some of the most used boolean operators:
+
+-   *"&"*: are both true?
+-   *"\|"*: is of them true?
+-   *"xor"*: is exactly one of them true?
+-   *"!"*: is it false? (might be uselful for flipping a condition, for example with !is.na())
+-   *"any"*: are any of these conditions true?
+-   *"all"*: are all of them true?
+
+### **Missing information**
+
+When we miss some information R will display "NA" which means "Not Available" For removing the "NA2s we can use: na.rm = TRUE If what we want does not have the"na.rm" we could use: vector\[!is.na()\], so it will take everything that is not NA.
+
+## **Environments**
+
+Environments refer to the spaces where objects (such as variables, functions, etc.) are created and stored during an R session.

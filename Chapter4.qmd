@@ -1,0 +1,105 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Data transformation
+
+**This fourth chapter summarizes some functions "that will help when"dplyr" functions.**
+
+It is important to know that the "dplyr" function overwrites other functions. In case we want to use the basic functions we should use: "stats::filter()" and "stats::log()"; and if we want to be precise about which function of the package has the priority we can use: "packagename::functionname()".
+
+The package "*tidyverse*" instead of "data frames", uses "tibbes" that are a special type of data frame that allows one to see a summary of the data. In case we want to see all of the columns we should use "glimpse()".
+
+All the "dplyr" basic functions have three elements in common:
+
+-   The first argument is always the data frame.
+
+-   The subsequent arguments refer to the columns that we want to operate on, and we refer to them by using the name of the variable.
+
+-   The output is always a data frame.
+
+## The pipe " \|\> "
+
+Before getting into the different functions of "tidyverse", we need to describe the "pipe". The pipes take what is on the left and pass it along to the function on the right. For example, it is the same to write " x \|\> f(y)" and "f(x,y)". The pipe is very useful to combine different functions and to avoid creating new objects.
+
+The shortcut to add the pipe is "ctrl + shift + M".
+
+## "dplyr" function groups
+
+All the "dplyr" functions are organized into four groups based on what they operate on rows, columns, groups, and tables. All these functions will be used in examples in the next exercise.
+
+### Rows:
+
+#### Filter ():
+
+Changes in **which rows are present** without changing the order of the rows. It allows us to keep rows based on the values of the columns.
+
+Note that "=" does not mean equal to, if we want to input equal to we need to write "==".
+
+#### Arrange ():
+
+Changes **the order of the rows** without changing which ones are present. Note that it does it based on the values of the columns. When inputting more than one column, the function will operate based on the order in which we write them.
+
+We can use "desc()" on a column inside of "arrange ()" to reorder the data frame based on the values in that column from the biggest to the smallest.
+
+#### Distinct ():
+
+Finds rows with unique values and can also modify the columns.
+
+If we want to keep other columns when filtering unique rows, we can use "keep_all = TRUE". If we use "sort = TRUE" will arrange them in a descending order.
+
+### Columns:
+
+#### Mutate ():
+
+Creates more columns that are derived from the original ones. It will add the new variables at the right of the ones that we already had, if we want them at the left we need to write: ".before", and if we want them before and after: ".after". Also, we need to include ".keep" for the ones that we want to keep.
+
+#### Select ():
+
+Changes in which columns are present, act like "zooming" in a variable. We have different ways how we can select the columns: - By the name of the column - All the columns between 2 columns: "nameColumnA:nameColumnB" - All the columns except some: "!nameColumnA:nameColumnB" - The columns that the same type such as numeric, or characters
+
+#### Rename ():
+
+Change the name of the column. We can easily clean the names of the column by: "janitor::clean_names()".
+
+#### Relocate ():
+
+Changes the position of the columns.
+
+### Groups:
+
+#### Group_by ():
+
+To divide the data set into groups that are mean full for the analysis.
+
+#### Summarize ():
+
+To calculate a single summary statistics. It reduces the data frame to have a single row for each group. If we want to know the number of rows taken for each group we can use "n()#.
+
+#### Slice ():
+
+This function allows us to extract specific rows within each group:
+
+-   "df \|\> slice\_ head (n =1)" Takes the first row of each group
+
+-   "df \|\> slice\_ tail (n =1)" Takes the last row of each group
+
+-   "df \|\> slice\_ min (x, n =1)" Takes the row the smallest value of x.
+
+-   "df \|\> slice\_ max (x, n =1)" Takes the row the biggest value of x.
+
+-   "df \|\> slice\_ sample (n =1)" Takes a random row. If we write "n=1" it will give us one row, but if we can more we can write another number; we can also write "prop =0.1" and this will give us the %10 of the rows.
+
+#### Grouping by multiple variables ():
+
+Creates groups using more than one variable.
+
+#### Ungrouping:
+
+We can use "ungroup()" to remove some grouping.
+
+#### ".by" ():
+
+"group_by()" and "ungroup()" are not groing away.
