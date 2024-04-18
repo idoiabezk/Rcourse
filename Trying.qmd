@@ -37,21 +37,25 @@ fig
 ```{r}
 #Scatter pot
 
-# Generate some random data for the scatter plot
-n <- 100
-x <- rnorm(n)
-y <- rnorm(n)
-z <- rnorm(n)
 
 # Create the 3D scatter plot
-fig <- plot_ly(x = x, y = y, z = z, type = "scatter3d", mode = "markers")
-
+fig <- plot_ly(
+  x = all_results_df_SCCPs$`Replicate Name`, 
+  y = all_results_df_SCCPs$`Homologue`, 
+  z = all_results_df_SCCPs$`Relative_distribution`, 
+  type = "scatter3d", 
+  mode = "markers",
+  marker = list(
+    color = all_results_df_SCCPs$`Replicate Name`,
+    colors = c("orange", "green", "purple")
+  )
+)
 # Customize the layout
-fig <- fig %>% layout(
+fig <- fig |>  layout(
   scene = list(
-    xaxis = list(title = "X Axis"),
-    yaxis = list(title = "Y Axis"),
-    zaxis = list(title = "Z Axis")
+    xaxis = list(title = "Sample"),
+    yaxis = list(title = "Homologue"),
+    zaxis = list(title = "Relative distribution")
   )
 )
 
@@ -65,15 +69,16 @@ fig
 
 
 # Sample data for the donut chart
-labels <- c("A", "B", "C", "D", "E")
-values <- c(20, 30, 10, 15, 25)
+all_results_df_SCCPs2<-all_results_df_SCCPs |> 
+filter(str_detect(Homologue, "NIST_R2", negate = TRUE))|>#Exclude the other samples
+filter(str_detect(Homologue, "NIST_R3", negate = TRUE))#Exclude the other samples
 
 # Create the donut chart
-fig <- plot_ly(labels = labels, values = values, type = "pie", hole = 0.4)
+fig <- plot_ly(labels = all_results_df_SCCPs2$`Homologue`, values = all_results_df_SCCPs2$`Relative_distribution`, type = "pie", hole = 0.4)
 
 # Customize the layout
-fig <- fig %>% layout(
-  title = "Donut Chart Example"
+fig <- fig  |>  layout(
+  title = "Donut Chart for homologue distribution"
 )
 
 # Show the plot
@@ -82,43 +87,64 @@ fig
 ```
 
 ```{r}
-#Line chart
+#Line chart to see the homologue distribution 
 
-# Sample data for the line chart
-x <- c(1, 2, 3, 4, 5)
-y <- c(10, 15, 13, 18, 16)
-
-# Create the line chart
-fig <- plot_ly(x = x, y = y, type = "scatter", mode = "lines")
+fig <- plot_ly(
+  x = all_results_df_SCCPs2$Simulated_pattern, 
+  y = all_results_df_SCCPs2$Homologue, 
+  type = "scatter", 
+  mode = "lines"
+)
 
 # Customize the layout
 fig <- fig %>% layout(
-  title = "Line Chart Example",
-  xaxis = list(title = "X Axis"),
-  yaxis = list(title = "Y Axis")
+  title = "Line Chart",
+  xaxis = list(title = "Simulated Pattern"),
+  yaxis = list(title = "Homologue")
 )
 
 # Show the plot
 fig
 
+
+#Line chart to check the differences between the measured and the simulated for one homologue
+# Selct which row of the data frame
+row_to_plot <- all_results_df_SCCPs[1:8, ]
+
+fig <- plot_ly(
+  x = row_to_plot$Simulated_pattern, 
+  y = row_to_plot$`Relative_distribution`, 
+  type = "scatter", 
+  mode = "lines"
+)
+
+# Customize the layout
+fig <- fig %>% layout(
+  title = "PCAs-C10",
+  xaxis = list(title = "Simulated Pattern"),
+  yaxis = list(title = "Relative_distribution")
+)
+
+# Show the plot
+fig
 ```
 
 
 ```{r}
 #Bar Chart
 
-# Sample data for the bar chart
-x <- c("A", "B", "C", "D", "E")
-y <- c(20, 30, 10, 15, 25)
+
 
 # Create the bar chart
-fig <- plot_ly(x = x, y = y, type = "bar")
+fig <- plot_ly(x = all_results_df_SCCPs$`Homologue`, y = all_results_df_SCCPs$`Relative_distribution`, type = "bar")
 
 # Customize the layout
-fig <- fig %>% layout(
-  title = "Bar Chart Example",
-  xaxis = list(title = "Categories"),
-  yaxis = list(title = "Values")
+fig <- fig |>  layout(
+  title = "Bar Chart Homologue distribution",
+  xaxis = list(title = "Homologue"),
+  yaxis = list(title = "Relative distribution"),
+   marker = list(color = all_results_df_SCCPs$`Replicate Name`,
+                 colors= c("orange", "green", "purple"))
 )
 
 # Show the plot
@@ -126,44 +152,19 @@ fig
 
 ```
 
-```{r}
-#Histogram
 
-
-# Sample data for the histogram
-x <- rnorm(100)
-
-# Create the histogram
-fig <- plot_ly(x = x, type = "histogram")
-
-# Customize the layout
-fig <- fig %>% layout(
-  title = "Histogram Example",
-  xaxis = list(title = "Values"),
-  yaxis = list(title = "Frequency")
-)
-
-# Show the plot
-fig
-
-```
 
 ```{r}
 #Box plot
 
-
-# Sample data for the box plot
-x <- rep(c("A", "B", "C"), each = 50)
-y <- rnorm(150)
-
 # Create the box plot
-fig <- plot_ly(x = x, y = y, type = "box")
+fig <- plot_ly(x = all_results_df_SCCPs$`Replicate Name`, y = all_results_df_SCCPs$`Relative_distribution`, type = "box")
 
 # Customize the layout
-fig <- fig %>% layout(
-  title = "Box Plot Example",
-  xaxis = list(title = "Categories"),
-  yaxis = list(title = "Values")
+fig <- fig |> layout(
+  title = "Box Plot diferences between samples",
+  xaxis = list(title = "Samples"),
+  yaxis = list(title = "Relative distribution")
 )
 
 # Show the plot
@@ -174,18 +175,23 @@ fig
 ```{r}
 #Heat map
 
+# Reshape the data into a matrix format for the heatmap
+z <- matrix(all_results_df_SCCPs$Relative_distribution, nrow = nrow(all_results_df_SCCPs))
 
-# Sample data for the heatmap
-z <- matrix(rnorm(100, 5, 2), nrow = 10)
+# Define row and column names for the heatmap
+homologues <- unique(all_results_df_SCCPs$Homologue)
+samples <- unique(all_results_df_SCCPs$`Replicate Name`)
+colnames(z) <- samples
+rownames(z) <- homologues
 
 # Create the heatmap
-fig <- plot_ly(z = z, type = "heatmap")
+fig <- plot_ly(z = ~z, x = samples, y = homologues, type = "heatmap")
 
 # Customize the layout
 fig <- fig %>% layout(
-  title = "Heatmap Example",
-  xaxis = list(title = "X Axis"),
-  yaxis = list(title = "Y Axis")
+  title = "Heatmap of Relative Distribution of Homologues between Samples",
+  xaxis = list(title = "Sample"),
+  yaxis = list(title = "Homologue")
 )
 
 # Show the plot
@@ -196,7 +202,6 @@ fig
 ```{r}
 #Bubble chart
 
-
 # Sample data for the bubble chart
 x <- rnorm(50)
 y <- rnorm(50)
@@ -206,7 +211,7 @@ size <- runif(50, min = 5, max = 15)
 fig <- plot_ly(x = x, y = y, type = "scatter", mode = "markers", marker = list(size = size))
 
 # Customize the layout
-fig <- fig %>% layout(
+fig <- fig |>  layout(
   title = "Bubble Chart Example",
   xaxis = list(title = "X Axis"),
   yaxis = list(title = "Y Axis")
@@ -288,5 +293,29 @@ fig <- fig %>% layout(
 # Show the plot
 fig
 
+```
+
+```{r}
+
+#Histogram
+
+
+# Sample data for the histogram
+x <- rnorm(100)
+
+# Create the histogram
+fig <- plot_ly(x = x, type = "histogram")
+
+# Customize the layout
+fig <- fig %>% layout(
+  title = "Histogram Example",
+  xaxis = list(title = "Values"),
+  yaxis = list(title = "Frequency")
+)
+
+# Show the plot
+fig
+
+```
 ```
 
