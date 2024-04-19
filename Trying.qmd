@@ -134,6 +134,37 @@ fig <- fig %>% layout(
 fig
 ```
 
+```{r}
+#Bar Chart
+
+# Define color mapping
+colors <- c("orange", "green", "purple")  # Define colors for each replicate name
+unique_replicates <- unique(all_results_df_SCCPs$`Replicate Name`)
+color_mapping <- setNames(colors, unique_replicates)
+
+# Create the plot
+fig <- plot_ly(
+  x = all_results_df_SCCPs$Homologue, 
+  y = all_results_df_SCCPs$Relative_distribution, 
+  type = "bar",
+  marker = list(color = sapply(all_results_df_SCCPs$`Replicate Name`, function(rep) color_mapping[rep])),
+   text = paste("Replicate Name: ", all_results_df_SCCPs2$`Replicate Name`
+)
+)
+
+# Customize the layout
+fig <- fig  |>  
+  layout(
+    title = "Bar Chart Homologue distribution",
+    xaxis = list(title = "Homologue"),
+    yaxis = list(title = "Relative distribution")
+  )
+
+# Show the plot
+fig
+```
+
+
 
 ```{r}
 #Bar Chart
@@ -148,8 +179,14 @@ fig <- plot_ly(
   x = all_results_df_SCCPs$Homologue, 
   y = all_results_df_SCCPs$Relative_distribution, 
   type = "bar",
-  marker = list(color = sapply(all_results_df_SCCPs$`Replicate Name`, function(rep) color_mapping[rep]))
+  marker = list(color = sapply(all_results_df_SCCPs$`Replicate Name`, function(rep) color_mapping[rep])),
+    #to change the label that shower when passing the cursor
+  text = paste("Replicate Name: ", all_results_df_SCCPs2$`Replicate Name`, "<br>",
+               "Relative Distribution: ", all_results_df_SCCPs2$`Relative_distribution`, 
+               "Homlogue:", all_results_df_SCCPs2$Homologue),
+  color = all_results_df_SCCPs2$`Replicate Name`
 )
+
 
 # Customize the layout
 fig <- fig  |>  
@@ -163,12 +200,46 @@ fig <- fig  |>
 fig
 
 
+```
+
+
+```{r}
 
 #####One bar per sample
 
 
-```
+# Define color mapping
+colors <- c("orange", "green", "purple")  # Define colors for each replicate name
+unique_replicates <- unique(all_results_df_SCCPs$`Replicate Name`)
+color_mapping <- setNames(colors, unique_replicates)
 
+# Group by homologue and replicate name, then calculate the mean of Relative_distribution
+grouped_data <- all_results_df_SCCPs  |> 
+  group_by(Homologue, `Replicate Name`)  |> 
+  summarize(mean_distribution = mean(Relative_distribution), .groups = "drop")
+
+# Create the plot
+fig <- plot_ly(
+  data = grouped_data,  # Specify the data frame
+  x = ~Homologue, 
+  y = ~mean_distribution,
+  color = ~`Replicate Name`,
+  colors = color_mapping,
+  type = "bar"
+)
+
+# Customize the layout
+fig <- fig   |> 
+  layout(
+    title = "Bar Chart Homologue distribution",
+    xaxis = list(title = "Homologue"),
+    yaxis = list(title = "Mean Relative distribution")
+  )
+
+# Show the plot
+fig
+
+```
 
 
 ```{r}
@@ -179,7 +250,7 @@ fig
 fig <- plot_ly(x = all_results_df_SCCPs$`Replicate Name`, y = all_results_df_SCCPs$`Relative_distribution`, 
                type = "box",
                box = list(
-               color = ~all_results_df_SCCPs$`Replicate Name`
+               color = all_results_df_SCCPs$`Replicate Name`
   ) )
 
 # Customize the layout
@@ -225,7 +296,7 @@ fig
 #Bubble chart
 
 # Sample data for the bubble chart
-size <- runif(nrow(all_results_df_SCCPs2), min = 0.0, max = 0.2)
+size <- runif(nrow(all_results_df_SCCPs2), min = 5.0, max = 20)
 
 # Create the bubble chart
 fig <- plot_ly(x = all_results_df_SCCPs2$`Relative_distribution`, 
@@ -233,6 +304,7 @@ fig <- plot_ly(x = all_results_df_SCCPs2$`Relative_distribution`,
                type = "scatter", 
                mode = "markers", 
                marker = list(size = size),
+               color = all_results_df_SCCPs2$`Replicate Name`
                )
 
 # Customize the layout
@@ -281,8 +353,8 @@ fig
 
 
 # Select rows for NISTR1 and NISTR2
-NISTR1 <- all_results_df_SCCPs[1:37, c("Concentration")]
-NISTR2 <- all_results_df_SCCPs[38:70, c("Concentration")]
+NISTR1 <- all_results_df_SCCPs[1:37, c("Relative_distribution")]
+NISTR2 <- all_results_df_SCCPs[38:70, c("Relative_distribution")]
 
 # Combine NISTR1 and NISTR2 into a single data frame
 combined_data <- rbind(NISTR1, NISTR2)
@@ -290,13 +362,17 @@ combined_data <- rbind(NISTR1, NISTR2)
 # Perform PCA
 pca_result <- prcomp(combined_data, scale. = TRUE)
 
+
 # Extract PCA scores
 pca_scores <- as.data.frame(pca_result$x)
 
+# Create index for samples
+sample_index <- 1:nrow(pca_scores)
+
 # Create PCA plot
 fig <- plot_ly(
-  x = ~pca_scores$PC1,
-  y = ~pca_scores$PC2,
+  x = ~sample_index,
+  y = ~pca_scores$PC1,
   type = "scatter",
   mode = "markers"
 )
@@ -305,14 +381,12 @@ fig <- plot_ly(
 fig <- fig |>  
   layout(
     title = "PCA Plot",
-    xaxis = list(title = "PC1"),
-    yaxis = list(title = "PC2")
+    xaxis = list(title = "Sample Index"),
+    yaxis = list(title = "PC1")
   )
 
 # Show the plot
 fig
-
-
 
 ```
 
