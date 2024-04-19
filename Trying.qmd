@@ -11,20 +11,25 @@ library(plotly)
 
 #3D surface
 
-# Generate some data for the surface plot
-x <- seq(-5, 5, length.out = 100)
-y <- seq(-5, 5, length.out = 100)
-z <- outer(x, y, function(x, y) sin(sqrt(x^2 + y^2)))
+
 
 # Create the 3D surface plot
-fig <- plot_ly(x = x, y = y, z = z, type = "surface")
+fig <- plot_ly(x = all_results_df_SCCPs$`Homologue`, 
+               y = all_results_df_SCCPs$`Relative_distribution`, 
+               z = all_results_df_SCCPs$`Replicate Name`, 
+               type = "surface",
+                marker = list(color = all_results_df_SCCPs$`Replicate Name`),
+                colorbar = list(title = "Replicate Name"),
+                colorscale = "Viridis"
+               )
+               
 
 # Customize the layout
-fig <- fig %>% layout(
+fig <- fig |> layout(
   scene = list(
-    xaxis = list(title = "X Axis"),
-    yaxis = list(title = "Y Axis"),
-    zaxis = list(title = "Z Axis")
+    xaxis = list(title = "Homologue"),
+    yaxis = list(title = "Relative distribution"),
+    zaxis = list(title = "Replicate name")
   )
 )
 
@@ -270,4 +275,44 @@ fig
 
 ```
 
+
+```{r}
+# Load necessary libraries
+
+
+# Select rows for NISTR1 and NISTR2
+NISTR1 <- all_results_df_SCCPs[1:37, c("Concentration")]
+NISTR2 <- all_results_df_SCCPs[38:70, c("Concentration")]
+
+# Combine NISTR1 and NISTR2 into a single data frame
+combined_data <- rbind(NISTR1, NISTR2)
+
+# Perform PCA
+pca_result <- prcomp(combined_data, scale. = TRUE)
+
+# Extract PCA scores
+pca_scores <- as.data.frame(pca_result$x)
+
+# Create PCA plot
+fig <- plot_ly(
+  x = ~pca_scores$PC1,
+  y = ~pca_scores$PC2,
+  type = "scatter",
+  mode = "markers"
+)
+
+# Customize the layout
+fig <- fig |>  
+  layout(
+    title = "PCA Plot",
+    xaxis = list(title = "PC1"),
+    yaxis = list(title = "PC2")
+  )
+
+# Show the plot
+fig
+
+
+
+```
 
