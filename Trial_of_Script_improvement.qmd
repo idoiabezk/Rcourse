@@ -1,0 +1,137 @@
+---
+title: "Trial_of_improvingScript"
+---
+
+```{r}
+# Replace missing values in the Response_factor column with 0
+TESTING <- TESTING |> 
+  mutate(`Normalized Area` = replace_na(`Normalized Area`, 0))
+
+# Function to create molecule names
+create_molecule_name <- function(i, j) {
+  molecule_name <- paste0("C", i, "H", (2 * i) + 2 - j, "Cl", j)
+  return(molecule_name)
+}
+
+# Create an empty list to store plots and calibration results
+plotsB <- list()
+calibration_resultsB <- data.frame(STD_code = character(),
+                                   Reference_standard = character(),
+                                   Chain_length = character(),
+                                   Type = character(),
+                                   Homologue = character(),
+                                   Response_factor = numeric(),
+                                   Intercept = numeric(),
+                                   R_squared = numeric(),
+                                   stringsAsFactors = FALSE)
+
+# Define the range of i and j
+i_values <- 14:17
+j_values <- 3:12
+# Nested loops to iterate over i and j
+for (i in i_values) {
+  for (j in j_values) {
+    # Create molecule name
+    molecule_name <- create_molecule_name(i, j)
+    
+    # Filter data for the current molecule
+    filtered_dataB <- TESTING |>
+      filter(Molecule == molecule_name) |>
+      filter(Note == "E") |>
+      mutate(Filter = case_when(
+        str_detect(`Replicate Name`, "^SCCP") ~ {
+          filter(str_detect(Homologue, "C9", negate = TRUE)) |> # Exclude the calibration vSCCPs
+          filter(str_detect(Homologue, "C14", negate = TRUE)) |> # Exclude the calibration MCCPs
+          filter(str_detect(Homologue, "C15", negate = TRUE)) |> # Exclude the calibration MCCPs
+          filter(str_detect(Homologue, "C16", negate = TRUE)) |> # Exclude the calibration MCCPs
+          filter(str_detect(Homologue, "C17", negate = TRUE)) |> # Exclude the calibration MCCPs
+          filter(str_detect(Homologue, "IS", negate = TRUE)) |>  # Exclude the calibration IS
+          filter(str_detect(Homologue, "RS", negate = TRUE)) |>  # Exclude the calibration RS
+          filter(str_detect(`Replicate Name`, "Std", negate = TRUE)) # Exclude the calibration standards
+        },
+        str_detect(`Replicate Name`, "^MCCP") ~ {
+          filter(`Isotope Label Type` == "Quan", Molecule == molecule_name, Note == "D")|> 
+          filter(str_detect(Molecule, "C9", negate = TRUE))|>#Exclude the calibration vSCCPs
+          filter(str_detect(Molecule, "C10", negate = TRUE))|>#Exclude the calibration SCCPs
+          filter(str_detect(Molecule, "C11", negate = TRUE))|>#Exclude the calibration SCCPs
+          filter(str_detect(Molecule, "C12", negate = TRUE))|>#Exclude the calibration SCCPs
+          filter(str_detect(Molecule, "C13", negate = TRUE)) |>#Exclude the calibration SCCPs
+          filter(str_detect(Molecule, "IS", negate = TRUE)) |> #Exclude the calibration IS
+          filter(str_detect(Molecule, "RS", negate = TRUE)) #Exclude the calibration RS
+        },
+        TRUE ~ {
+          # Default filter, in case Replicate Name doesn't match SCCP or MCCP
+          # You can add more cases here if needed
+          filter(TRUE)
+        }
+      )) |>
+      select(-Filter)
+    
+    # Check if there are any non-NA cases in the filtered data
+    if (sum(!is.na(filtered_dataB$`Normalized Area`)) == 0 || sum(!is.na(filtered_dataB$`Analyte Concentration`)) == 0) {
+      cat("No valid cases for fitting the model for molecule:", molecule_name, "\n")
+    } else {
+      # Fit linear model to the data
+      lm_modelB <- lm(`Normalized Area` ~ `Analyte Concentration`, data = filtered_dataB)
+      
+      # Extract slope and intercept from the model
+      slopeB <- coef(lm_modelB)[2]
+      interceptB <- coef(lm_modelB)[1]
+      
+      # Calculate R-squared
+      R_squaredB <- summary(lm_modelB)$r.squared
+      
+      # Determine the type based on the value of i
+      if (i >= 10 && i <= 13) {
+        type <- "SCCPs"
+      } else if (i >= 14 && i <= 17) {
+        type <- "MCCPs"
+      } else if (i >= 18 && i <= 30) {
+        type <- "LCCPs"
+      } else {
+        type <- "Unknown"
+      }
+      
+      # Store the calibration results in the data frame
+      calibration_resultsB <- rbind(calibration_resultsB, 
+                                    data.frame(STD_code = paste("B-", type),
+                                               Reference_standard = paste(type, "C", i, "Cl%", "52"),
+                                               Chain_length = paste("C",i),
+                                               Type = type,
+                                               Homologue = molecule_name,
+                                               Response_factor = round(slopeB),
+                                               Intercept = interceptB,
+                                               R_squared = R_squaredB))
+      
+      
+      # Create plot for the current molecule
+      plotB <- ggplot(filtered_dataB, aes(x = `Analyte Concentration`, y = `Normalized Area`)) +
+        geom_point() +
+        geom_smooth(method = "lm", 
+                    se = FALSE, 
+                    colour = "purple",
+                    size = 1) +
+        theme_classic() +
+        ylab("`Normalized Area`") +
+        ggtitle(paste("Molecule:", molecule_name))
+      
+      # Store the plot in the list
+      plotsB[[paste("Molecule", molecule_name)]] <- plotB
+    }
+  }
+}
+# Print the data frame with calibration results
+print(calibration_resultsB)
+
+
+# Arrange plots in a grid
+calibration_curves_gridB <- plotsB[[1]]
+for (i in 2:length(plotsB)) {
+  calibration_curves_gridB <- calibration_curves_gridB + plotsB[[i]]
+}
+
+# Print the grid of calibration curves
+calibration_curves_gridB
+
+```
+
