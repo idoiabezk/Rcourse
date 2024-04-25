@@ -3,9 +3,22 @@ title: "Trial_of_improvingScript"
 ---
 
 ```{r}
+#Load the libraries
+library(dplyr)
+library(tidyr)
+library(tidyverse)
+library(readxl)
+library(patchwork)
+library(stringr)
+
+
+# Load the file
+TESTING <- read_excel("F:/LINKOPING/Manuscripts/Skyline/Skyline/OrbitrapDust.xlsx") |>
+  mutate(`Analyte Concentration` = as.numeric(`Analyte Concentration`)) 
+
 # Replace missing values in the Response_factor column with 0
 TESTING <- TESTING |> 
-  mutate(`Normalized Area` = replace_na(`Normalized Area`, 0))
+  mutate(`Normalized Area` = ifelse(is.na(`Normalized Area`), 0, `Normalized Area`))  # Replace NAs with 0
 
 # Function to create molecule names
 create_molecule_name <- function(i, j) {
@@ -14,8 +27,8 @@ create_molecule_name <- function(i, j) {
 }
 
 # Create an empty list to store plots and calibration results
-plotsB <- list()
-calibration_resultsB <- data.frame(STD_code = character(),
+plotsA <- list()
+calibration_resultsA <- data.frame(STD_code = character(),
                                    Reference_standard = character(),
                                    Chain_length = character(),
                                    Type = character(),
@@ -26,60 +39,60 @@ calibration_resultsB <- data.frame(STD_code = character(),
                                    stringsAsFactors = FALSE)
 
 # Define the range of i and j
-i_values <- 14:17
+i_values <- 10:17
 j_values <- 3:12
+
 # Nested loops to iterate over i and j
 for (i in i_values) {
   for (j in j_values) {
     # Create molecule name
     molecule_name <- create_molecule_name(i, j)
     
-    # Filter data for the current molecule
-    filtered_dataB <- TESTING |>
-      filter(Molecule == molecule_name) |>
-      filter(Note == "E") |>
+    #Filter data for the current molecule
+    filtered_dataA <- TESTING |> 
+      filter(Molecule == molecule_name) |> 
+      group_by(Note) |> 
       mutate(Filter = case_when(
         str_detect(`Replicate Name`, "^SCCP") ~ {
-          filter(str_detect(Homologue, "C9", negate = TRUE)) |> # Exclude the calibration vSCCPs
-          filter(str_detect(Homologue, "C14", negate = TRUE)) |> # Exclude the calibration MCCPs
-          filter(str_detect(Homologue, "C15", negate = TRUE)) |> # Exclude the calibration MCCPs
-          filter(str_detect(Homologue, "C16", negate = TRUE)) |> # Exclude the calibration MCCPs
-          filter(str_detect(Homologue, "C17", negate = TRUE)) |> # Exclude the calibration MCCPs
-          filter(str_detect(Homologue, "IS", negate = TRUE)) |>  # Exclude the calibration IS
-          filter(str_detect(Homologue, "RS", negate = TRUE)) |>  # Exclude the calibration RS
-          filter(str_detect(`Replicate Name`, "Std", negate = TRUE)) # Exclude the calibration standards
+          str_detect(Molecule, "C9", negate = TRUE) &  # Exclude the calibration vSCCPs
+          str_detect(Molecule, "C14", negate = TRUE) &  # Exclude the calibration MCCPs
+          str_detect(Molecule, "C15", negate = TRUE) &  # Exclude the calibration MCCPs
+          str_detect(Molecule, "C16", negate = TRUE) &  # Exclude the calibration MCCPs
+          str_detect(Molecule, "C17", negate = TRUE) &  # Exclude the calibration MCCPs
+          str_detect(Molecule, "IS", negate = TRUE) &   # Exclude the calibration IS
+          str_detect(Molecule, "RS", negate = TRUE) &   # Exclude the calibration RS
+          str_detect(`Replicate Name`, "Std", negate = TRUE)  # Exclude the calibration standards
         },
         str_detect(`Replicate Name`, "^MCCP") ~ {
-          filter(`Isotope Label Type` == "Quan", Molecule == molecule_name, Note == "D")|> 
-          filter(str_detect(Molecule, "C9", negate = TRUE))|>#Exclude the calibration vSCCPs
-          filter(str_detect(Molecule, "C10", negate = TRUE))|>#Exclude the calibration SCCPs
-          filter(str_detect(Molecule, "C11", negate = TRUE))|>#Exclude the calibration SCCPs
-          filter(str_detect(Molecule, "C12", negate = TRUE))|>#Exclude the calibration SCCPs
-          filter(str_detect(Molecule, "C13", negate = TRUE)) |>#Exclude the calibration SCCPs
-          filter(str_detect(Molecule, "IS", negate = TRUE)) |> #Exclude the calibration IS
-          filter(str_detect(Molecule, "RS", negate = TRUE)) #Exclude the calibration RS
+          `Isotope Label Type` == "Quan" & Molecule == molecule_name & Note == "D" &  # Exclude the calibration vSCCPs
+          !str_detect(Molecule, "C9") &  # Exclude the calibration vSCCPs
+          !str_detect(Molecule, "C10") &  # Exclude the calibration SCCPs
+          !str_detect(Molecule, "C11") &  # Exclude the calibration SCCPs
+          !str_detect(Molecule, "C12") &  # Exclude the calibration SCCPs
+          !str_detect(Molecule, "C13") &  # Exclude the calibration SCCPs
+          !str_detect(Molecule, "IS") &  # Exclude the calibration IS
+          !str_detect(Molecule, "RS")   # Exclude the calibration RS
         },
         TRUE ~ {
-          # Default filter, in case Replicate Name doesn't match SCCP or MCCP
-          # You can add more cases here if needed
-          filter(TRUE)
+          TRUE  # No filtering for other cases
         }
-      )) |>
+      )) |> 
+      filter(Filter) |>  # Apply the filter after grouping and mutation
       select(-Filter)
-    
+      
     # Check if there are any non-NA cases in the filtered data
-    if (sum(!is.na(filtered_dataB$`Normalized Area`)) == 0 || sum(!is.na(filtered_dataB$`Analyte Concentration`)) == 0) {
+    if (sum(!is.na(filtered_dataA$`Normalized Area`)) == 0 || sum(!is.na(filtered_dataA$`Analyte Concentration`)) == 0) {
       cat("No valid cases for fitting the model for molecule:", molecule_name, "\n")
     } else {
       # Fit linear model to the data
-      lm_modelB <- lm(`Normalized Area` ~ `Analyte Concentration`, data = filtered_dataB)
+      lm_modelA <- lm(`Normalized Area` ~ `Analyte Concentration`, data = filtered_dataA)
       
       # Extract slope and intercept from the model
-      slopeB <- coef(lm_modelB)[2]
-      interceptB <- coef(lm_modelB)[1]
+      slopeA <- coef(lm_modelA)[2]
+      interceptA <- coef(lm_modelA)[1]
       
       # Calculate R-squared
-      R_squaredB <- summary(lm_modelB)$r.squared
+      R_squaredA <- summary(lm_modelA)$r.squared
       
       # Determine the type based on the value of i
       if (i >= 10 && i <= 13) {
@@ -92,46 +105,208 @@ for (i in i_values) {
         type <- "Unknown"
       }
       
+      # Define a vector of letters
+      letters_vec <- c("A", "B", "C", "D", "E")  # Add more if needed
+
+      # Assuming you have already defined 'type'
+      # Add this line before using STD_code
+      group_letter <- letters_vec[match(unique(filtered_dataA$Note), filtered_dataA$Note)]  # Get the letter corresponding to each group
+
       # Store the calibration results in the data frame
-      calibration_resultsB <- rbind(calibration_resultsB, 
-                                    data.frame(STD_code = paste("B-", type),
-                                               Reference_standard = paste(type, "C", i, "Cl%", "52"),
-                                               Chain_length = paste("C",i),
-                                               Type = type,
-                                               Homologue = molecule_name,
-                                               Response_factor = round(slopeB),
-                                               Intercept = interceptB,
-                                               R_squared = R_squaredB))
-      
+     
+      calibration_resultsA <- rbind(calibration_resultsA, 
+                              data.frame(STD_code = paste(group_letter, "-", type),
+                                         Reference_standard = paste(type, "C", i, "Cl%",sapply(strsplit(as.character(TESTING$`Replicate Name`), "_"), "[", 2)
+                                                                  ),
+                                         Chain_length = paste("C", i),
+                                         Type = type,
+                                         Homologue = molecule_name,
+                                         Response_factor = round(slopeA),
+                                         Intercept = interceptA,
+                                         R_squared = R_squaredA))
+
       
       # Create plot for the current molecule
-      plotB <- ggplot(filtered_dataB, aes(x = `Analyte Concentration`, y = `Normalized Area`)) +
+      plotA <- ggplot(filtered_dataA, aes(x = `Analyte Concentration`, y = `Normalized Area`)) +
         geom_point() +
         geom_smooth(method = "lm", 
                     se = FALSE, 
-                    colour = "purple",
+                    colour = "orange",
                     size = 1) +
         theme_classic() +
         ylab("`Normalized Area`") +
         ggtitle(paste("Molecule:", molecule_name))
       
       # Store the plot in the list
-      plotsB[[paste("Molecule", molecule_name)]] <- plotB
+      plotsA[[paste("Molecule", molecule_name)]] <- plotA
     }
   }
 }
 # Print the data frame with calibration results
-print(calibration_resultsB)
+print(calibration_resultsA)
 
 
-# Arrange plots in a grid
-calibration_curves_gridB <- plotsB[[1]]
-for (i in 2:length(plotsB)) {
-  calibration_curves_gridB <- calibration_curves_gridB + plotsB[[i]]
+##########################################PREPARE DATASET FOR PATTERN RECONSTRUCTION#################
+{
+  # Rename the file of the standards that we have created previous for calibration so it will fit the script
+  input <- calibration_resultsA
+  input$STD_code <- as.factor(input$STD_code)
+  
+  # Create all possible binary combinations between given calibration sets
+  Combinations <- combn(x = levels(input$STD_code), m = 2, FUN = NULL, simplify = TRUE)
+  
+  # Store sum RFs for each group CP standard
+  input <- input |> 
+    group_by(Reference_standard) |> 
+    mutate(Sum_response_factor = sum(Response_factor, na.rm = TRUE))
+  input[1:5] <- lapply(input[1:5], as.factor)
+  input$Response_factor[is.na(input$Response_factor)] <- 0
 }
 
-# Print the grid of calibration curves
-calibration_curves_gridB
+############################################SECTION FOR SAMPLE PROCESSING##########################
+## The script was made for quantifying one sample at the time, so I changed it to iterate for all the data frames of the samples
+
+# Initialize an empty list to store results for all samples
+all_results <- list()
+all_plots <- list()
+
+# Extract unique sample names, it will give the to each "data frame"
+unique_sample_names <- unique(TESTINGB$`Replicate Name`)
+
+# Iterate over each unique sample name
+for (sample_name in unique_sample_names) {
+  # Get the corresponding sample data frame, now I will use sample_df for further procesing
+  sample_df <- list_of_samples[[sample_name]]
+  
+  # Set sample name, to see which samples it will calibrate
+  print(paste("Processing sample:", sample_name))
+  
+  
+  
+  ####################################RUN PATTERN RECONSTRUCTION FOR SELECTED (LOADED) SAMPLE####################
+  #This section is mostly how it was given, I only included the info to fill in the empty list that I created at the begging so I will get the results for each sample. I also combined all results into one data frame so I would not have one data frame for ach sample. 
+  
+  sample_df <- sample_df |> 
+    mutate(
+      Chain_length = as.factor(Chain_length),
+      `Normalized Area` = as.numeric(`Normalized Area`),
+      Relative_distribution = `Normalized Area` / sum(`Normalized Area`, na.rm = TRUE)
+    )
+  
+  # Calculate relative `Normalized Area` distribution within each homologue group
+  sample_df$Relative_distribution <- NA
+  sample_df$`Normalized Area`[is.na(sample_df$`Normalized Area`)] <- 0
+  sample_df <- sample_df |>  mutate(Relative_distribution = `Normalized Area` / sum(`Normalized Area`, na.rm = TRUE))
+  results <- sample_df
+  results[c("Comp_1", "Comp_2", "Fraction_Comp_1", "Simulated_pattern")] <- NA
+  
+  # Deconvolution of homologue patterns (adjust your loop accordingly)
+  REF <- sample_df$Relative_distribution
+  Distance <- 100
+  
+  for (z in 1:length(Combinations[1,])) {
+    C_1 <- subset(input, subset = (STD_code == Combinations[1, z]))
+    C_2 <- subset(input, subset = (STD_code == Combinations[2, z]))
+    
+    for (j in 1:100) {
+      Combo <- (C_1$Response_factor * j + C_2$Response_factor * (100 - j)) / sum((C_1$Response_factor * j + C_2$Response_factor * (100 - j)), na.rm = TRUE)
+      
+      # Check for NA values in REF or Combo before comparison
+      if (!any(is.na(REF)) && !any(is.na(Combo)) && Distance > (sum(sqrt((REF - Combo)^2)))) {
+        results$Comp_1 <- as.character(C_1$STD_code)
+        results$Comp_2 <- as.character(C_2$STD_code)
+        results$Fraction_Comp_1 <- j
+        results$Simulated_pattern <- Combo
+        Distance <- sum(sqrt((REF - Combo)^2))
+      }
+    }
+  }
+  
+  
+  # Calculate concentrations (ng per microliter)
+  results$RF_1st <- NA
+  results$RF_2nd <- NA
+  
+  for (i in 1:nrow(results)) {
+    results$RF_1st[i] <- input$Sum_response_factor[input$STD_code == results$Comp_1[i]]
+    results$RF_2nd[i] <- input$Sum_response_factor[input$STD_code == results$Comp_2[i]]
+  }
+  
+  results <- results |> 
+    mutate(
+      RF_1st = as.numeric(RF_1st),
+      RF_2nd = as.numeric(RF_2nd),
+      Concentration = sum(`Normalized Area`) / (RF_1st * (Fraction_Comp_1 / 100) + RF_2nd * ((100 - Fraction_Comp_1) / 100))
+    )
+  
+  # Store the results for the current sample in the list
+  all_results[[sample_name]] <- results
+  
+  # Visualization of results
+  plot_table <- data.frame(
+    Distribution = c(results$Relative_distribution, results$Simulated_pattern),
+    Homologue = results$Homologue,
+    Chain_length = results$Chain_length,
+    Origin = rep(as.factor(c("Measured", "Simulated")), each = nrow(results))
+  )
+  
+  plot_table$Homologue <- factor(plot_table$Homologue, levels = unique(plot_table$Homologue))
+  
+  plot <- ggplot(plot_table, aes(x = Homologue, y = Distribution * 100, fill = Origin, colour = Origin)) +
+    geom_bar(stat = "identity", position = position_dodge(width = 0.9), width = 0.8, size = .4) +
+    theme(panel.background = element_blank()) +
+    scale_fill_manual(values = c("darkolivegreen3", "darkslategray4")) +
+    scale_color_manual(values = c("darkolivegreen4", "darkslategray")) +
+    ggtitle(label = paste(sample_name, " - Distribution of CP homologues")) +
+    theme(plot.title = element_text(size = 10, face = "bold", hjust = 0)) +
+    xlab("") + ylab("Relative `Normalized Area` distribution, %") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    theme(
+      legend.key.size = unit(0.15, "in"),
+      legend.text = element_text(size = 10),
+      legend.title = element_text(size = 10),
+      panel.background = element_rect(fill = "white"),
+      panel.border = element_rect(fill = NA, colour = "grey20"),
+      panel.grid.major.y = element_line(colour = "grey50"),
+      panel.grid.minor.y = element_line(colour = "grey80"),
+      panel.grid.major.x = element_blank(),
+      legend.position = "bottom",
+      strip.background = element_rect(fill = "grey20"),
+      strip.text = element_text(colour = "white", face = "bold")
+    ) +
+    facet_wrap(. ~ Chain_length, scales = "free", nrow = 4, ncol = 4)
+  
+  # Store the plot for the current sample in the list
+  all_plots[[sample_name]] <- plot
+  
+  results_output_SCCPs <- results |> 
+    summarise(median(Concentration)) |> 
+    mutate(
+      Type = results$Type[1],
+      Sample = sample_name,
+      Comment = paste("The best match:", results$Fraction_Comp_1[1], "% of ", results$Comp_1[1], " and ", 100 - results$Fraction_Comp_1[1], "% of ", results$Comp_2[1])
+    ) |> 
+    rename("Total concentration, ng/µL" = "median(Concentration)")
+  
+  # Combine results for all samples into a single dataframe
+  all_results_df_SCCPs <- bind_rows(all_results, .id = "Sample")
+  
+  # Print or further process the combined results dataframe
+  print(all_results_df_SCCPs)
+  # Print results output
+  print(results_output_SCCPs)
+  
+}
+
+#########################################VIEW RESULTS############################################
+
+#View Overview
+print(all_results_df_SCCPs)
+
+#View graph, REPLACE THE NAME OF THE SAMPLE YOU WANT TO SEE, another option is to open the list from the Environment and from there open each plot
+all_plots[["NIST_R1"]]
+all_plots[["NIST_R2"]]
+all_plots[["NIST_R3"]]
 
 ```
 
