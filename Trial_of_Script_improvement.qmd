@@ -11,6 +11,8 @@ library(readxl)
 library(patchwork)
 library(stringr)
 
+#Clean the environment
+rm(list = ls()) 
 
 # Load the file
 TESTING <- read_excel("F:/LINKOPING/Manuscripts/Skyline/Skyline/OrbitrapDust.xlsx") |>
@@ -19,12 +21,6 @@ TESTING <- read_excel("F:/LINKOPING/Manuscripts/Skyline/Skyline/OrbitrapDust.xls
 # Replace missing values in the Response_factor column with 0
 TESTING <- TESTING |> 
   mutate(`Normalized Area` = ifelse(is.na(`Normalized Area`), 0, `Normalized Area`))  # Replace NAs with 0
-
-# Function to create molecule names
-create_molecule_name <- function(i, j) {
-  molecule_name <- paste0("C", i, "H", (2 * i) + 2 - j, "Cl", j)
-  return(molecule_name)
-}
 
 # Create an empty list to store plots and calibration results
 plotsA <- list()
@@ -38,7 +34,167 @@ calibration_resultsA <- data.frame(STD_code = character(),
                                    R_squared = numeric(),
                                    stringsAsFactors = FALSE)
 
-# Define the range of i and j
+#Filter data for 
+    filtered_dataA <- TESTING |>
+      filter(`Sample Type` == "Standard") |> #Remove the samples etc. and only take the calibration std
+      filter(`Isotope Label Type` == "Quan") |>  #Remove the qual ions
+      filter((str_detect(`Replicate Name`, "^SCCP"))) |> #Take only the SCCPs
+      filter(str_detect(Molecule, "C9", negate = TRUE))|>#Exclude the calibration vSCCPs
+      filter(str_detect(Molecule, "C14", negate = TRUE))|>#Exclude the calibration MCCPs
+      filter(str_detect(Molecule, "C15", negate = TRUE))|>#Exclude the calibration MCCPs
+      filter(str_detect(Molecule, "C16", negate = TRUE))|>#Exclude the calibration MCCPs
+      filter(str_detect(Molecule, "C17", negate = TRUE))|>#Exclude the calibration MCCPs
+      filter(str_detect(Molecule, "IS", negate = TRUE)) |> #Exclude the calibration IS
+      filter(str_detect(Molecule, "RS", negate = TRUE)) #Exclude the calibration RS
+    
+    
+filtered_dataB <- TESTING |>
+      filter(`Sample Type` == "Standard") |> #Remove the samples etc. and only take the calibration std
+      filter(`Isotope Label Type` == "Quan") |>  #Remove the qual ions
+      filter((str_detect(`Replicate Name`, "^MCCP"))) |> #Take only the MCCPs
+      filter(str_detect(Molecule, "C9", negate = TRUE))|>#Exclude the calibration vSCCPs
+      filter(str_detect(Molecule, "C10", negate = TRUE))|>#Exclude the calibration MCCPs
+      filter(str_detect(Molecule, "C11", negate = TRUE))|>#Exclude the calibration MCCPs
+      filter(str_detect(Molecule, "C12", negate = TRUE))|>#Exclude the calibration MCCPs
+      filter(str_detect(Molecule, "C13", negate = TRUE))|>#Exclude the calibration MCCPs
+      filter(str_detect(Molecule, "IS", negate = TRUE)) |> #Exclude the calibration IS
+      filter(str_detect(Molecule, "RS", negate = TRUE)) #Exclude the calibration RS
+
+#Create one data frame with both
+filtered_data<- rbind(filtered_dataA, filtered_dataB)
+
+ 
+# Initialize an empty list to store results for all samples
+all_results <- list()
+all_plots <- list()
+
+
+#Group the standards
+list_of_std <- split(filtered_data, filtered_data$Note)
+unique_std_names <- unique(filtered_data$Note)
+for (sample_name in unique_std_names ) {
+  std_df <- list_of_std[[sample_name]]
+  
+#Group the Molecules
+list_of_molecule <- split(std_df, std_df$Molecule)
+unique_molecule_names <- unique(std_df$Molecule)
+for (sample_name in unique_molecule_names ){
+  molecule_df <- list_of_molecule[[sample_name]]
+  cal<- lm(`Normalized Area` ~ `Analyte Concentration`, data = molecule_df)
+  results <- data.frame(
+                        STD_code = paste(as.character(std_df$Note), "-", type),
+                        Reference_standard = paste(type, "C", i, "Cl%",sapply(strsplit(as.character(std_df$`Replicate Name`), "_"), "[", 2)),
+                        Chain_length = paste("C", i),
+                        Type = type,
+                        Homologue = sample_name,
+                        Response_factor = coef(cal)[2],
+                        Intercept = coef(cal)[1],
+                        R_squared = summary(cal, ~summary(.x)$r.squared)
+                        )
+  all_results[[sample_name]] <- results
+  }
+}  
+
+
+
+
+# Iterate over each unique standard name
+for (sample_name in list_of_standards) {
+  # Get the corresponding standard data frame, now I will use sample_df for further procesing
+  sample_df <- list_of_standards[[sample_name]]  
+  unique(sample_df$Molecule) |> 
+  lm(`Normalized Area` ~ `Analyte Concentration`)
+}  
+  
+  
+  aa<-sample_df |> filter(Molecule == unique_Molecule[5])
+  aaa<-lm(`Normalized Area` ~ `Analyte Concentration`, data = aa)
+  aaaa = data.frame(Molecule = unique_Molecule[5], Model_Slope = coef(aaa)[2], Model_Intercept=coef(aaa)[1])
+  
+  model$Model_Slope <- coef(model)[2]
+  group$Model_Intercept <- coef(model)[1]
+  
+
+  #grouped_data <- data  |> 
+    #group_by(Molecule) |> 
+    #group_split()
+  
+ # Create a data frame to store the results
+  results_df <- data.frame()
+  
+  # Loop through each group
+  for(group in grouped_data) {
+    molecule <- unique(group$Molecule)[1]
+    
+    # Perform linear regression
+    model <- lm(`Normalized Area` ~ `Analyte Concentration`, data = group)
+    group$Model_Slope <- coef(model)[2]
+    group$Model_Intercept <- coef(model)[1]
+    group$R_Squared <- summary(model)$r.squared
+    group$Note <- data$Note[group]
+    
+    # Append results to the data frame
+    results_df <- bind_rows(results_df, group)
+    
+    # Plot the results
+    plot <- ggplot(group, aes(x = `Analyte Concentration`, y = `Normalized Area`)) +
+      geom_point() +
+      geom_smooth(method = "lm", se = FALSE, color = "blue") +
+      labs(title = paste("Molecule:", molecule),
+           x = "Analyte Concentration",
+           y = "Normalized Area") +
+      theme_minimal()
+    
+    # Print the plot
+    print(plot)
+  }
+  
+  return(results_df)
+}
+
+# Apply the function to each dataset in the list_of_standards and combine the results
+results_df <- do.call(bind_rows, lapply(names(list_of_standards), function(note) analyze_dataset(list_of_standards)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Extract unique sample names, it will give the to each "data frame"
+unique_standard_names <- unique(filtered_data$Note)
+
+# Iterate over each unique sample name
+for (sample_name in unique_standard_names) {
+  # Get the corresponding sample data frame, now I will use sample_df for further processing
+  standard_df <- list_of_standards[[sample_name]]
+  
+# Function to create molecule names
+create_molecule_name <- function(i, j) {
+  molecule_name <- paste0("C", i, "H", (2 * i) + 2 - j, "Cl", j)
+  return(molecule_name)
+}
+
+  # Define the range of i and j
 i_values <- 10:17
 j_values <- 3:12
 
@@ -47,52 +203,32 @@ for (i in i_values) {
   for (j in j_values) {
     # Create molecule name
     molecule_name <- create_molecule_name(i, j)
-    
-    #Filter data for the current molecule
-    filtered_dataA <- TESTING |> 
-      filter(Molecule == molecule_name) |> 
-      group_by(Note) |> 
-      mutate(Filter = case_when(
-        str_detect(`Replicate Name`, "^SCCP") ~ {
-          str_detect(Molecule, "C9", negate = TRUE) &  # Exclude the calibration vSCCPs
-          str_detect(Molecule, "C14", negate = TRUE) &  # Exclude the calibration MCCPs
-          str_detect(Molecule, "C15", negate = TRUE) &  # Exclude the calibration MCCPs
-          str_detect(Molecule, "C16", negate = TRUE) &  # Exclude the calibration MCCPs
-          str_detect(Molecule, "C17", negate = TRUE) &  # Exclude the calibration MCCPs
-          str_detect(Molecule, "IS", negate = TRUE) &   # Exclude the calibration IS
-          str_detect(Molecule, "RS", negate = TRUE) &   # Exclude the calibration RS
-          str_detect(`Replicate Name`, "Std", negate = TRUE)  # Exclude the calibration standards
-        },
-        str_detect(`Replicate Name`, "^MCCP") ~ {
-          `Isotope Label Type` == "Quan" & Molecule == molecule_name & Note == "D" &  # Exclude the calibration vSCCPs
-          !str_detect(Molecule, "C9") &  # Exclude the calibration vSCCPs
-          !str_detect(Molecule, "C10") &  # Exclude the calibration SCCPs
-          !str_detect(Molecule, "C11") &  # Exclude the calibration SCCPs
-          !str_detect(Molecule, "C12") &  # Exclude the calibration SCCPs
-          !str_detect(Molecule, "C13") &  # Exclude the calibration SCCPs
-          !str_detect(Molecule, "IS") &  # Exclude the calibration IS
-          !str_detect(Molecule, "RS")   # Exclude the calibration RS
-        },
-        TRUE ~ {
-          TRUE  # No filtering for other cases
-        }
-      )) |> 
-      filter(Filter) |>  # Apply the filter after grouping and mutation
-      select(-Filter)
-      
+
     # Check if there are any non-NA cases in the filtered data
-    if (sum(!is.na(filtered_dataA$`Normalized Area`)) == 0 || sum(!is.na(filtered_dataA$`Analyte Concentration`)) == 0) {
+    if (sum(!is.na(standard_df$`Normalized Area`)) == 0 || sum(!is.na(standard_df$`Analyte Concentration`)) == 0) {
       cat("No valid cases for fitting the model for molecule:", molecule_name, "\n")
     } else {
-      # Fit linear model to the data
-      lm_modelA <- lm(`Normalized Area` ~ `Analyte Concentration`, data = filtered_dataA)
+     
+      
+      # Assuming 'standard_df' is your data frame containing the data
+# Group the data by 'Molecule' and fit linear regression within each group
+lm_models <- standard_df |> 
+  group_by(Molecule) |> 
+  summarize(
+    lm_model = list(lm(`Normalized Area` ~ `Analyte Concentration`, data = cur_data()))
+  ) |> 
+  ungroup()
+      
+
       
       # Extract slope and intercept from the model
-      slopeA <- coef(lm_modelA)[2]
-      interceptA <- coef(lm_modelA)[1]
+      slopeA <- coef(lm_models)[2]
+      interceptA <- coef(lm_models)[1]
+      
       
       # Calculate R-squared
-      R_squaredA <- summary(lm_modelA)$r.squared
+      R_squaredA <- summary(lm_models, ~summary(.x)$r.squared)
+  
       
       # Determine the type based on the value of i
       if (i >= 10 && i <= 13) {
@@ -105,18 +241,12 @@ for (i in i_values) {
         type <- "Unknown"
       }
       
-      # Define a vector of letters
-      letters_vec <- c("A", "B", "C", "D", "E")  # Add more if needed
-
-      # Assuming you have already defined 'type'
-      # Add this line before using STD_code
-      group_letter <- letters_vec[match(unique(filtered_dataA$Note), filtered_dataA$Note)]  # Get the letter corresponding to each group
-
+ 
       # Store the calibration results in the data frame
      
       calibration_resultsA <- rbind(calibration_resultsA, 
-                              data.frame(STD_code = paste(group_letter, "-", type),
-                                         Reference_standard = paste(type, "C", i, "Cl%",sapply(strsplit(as.character(TESTING$`Replicate Name`), "_"), "[", 2)
+                              data.frame(STD_code = paste(as.character(standard_df$Note), "-", type),
+                                         Reference_standard = paste(type, "C", i, "Cl%",sapply(strsplit(as.character(standard_df$`Replicate Name`), "_"), "[", 2)
                                                                   ),
                                          Chain_length = paste("C", i),
                                          Type = type,
@@ -127,7 +257,7 @@ for (i in i_values) {
 
       
       # Create plot for the current molecule
-      plotA <- ggplot(filtered_dataA, aes(x = `Analyte Concentration`, y = `Normalized Area`)) +
+      plotA <- ggplot(standard_df, aes(x = `Analyte Concentration`, y = `Normalized Area`)) +
         geom_point() +
         geom_smooth(method = "lm", 
                     se = FALSE, 
@@ -142,9 +272,27 @@ for (i in i_values) {
     }
   }
 }
+}
 # Print the data frame with calibration results
 print(calibration_resultsA)
 
+
+
+
+
+
+
+filtered_dataB <- TESTING |>
+      filter(`Sample Type` == "Standard") |> #Remove the samples etc. and only take the calibration std
+      filter(`Isotope Label Type` == "Quan") |>  #Remove the qual ions
+      filter((str_detect(`Replicate Name`, "^MCCP"))) |> #Take only the MCCPs
+      filter(str_detect(Molecule, "C9", negate = TRUE))|>#Exclude the calibration vSCCPs
+      filter(str_detect(Molecule, "C10", negate = TRUE))|>#Exclude the calibration MCCPs
+      filter(str_detect(Molecule, "C11", negate = TRUE))|>#Exclude the calibration MCCPs
+      filter(str_detect(Molecule, "C12", negate = TRUE))|>#Exclude the calibration MCCPs
+      filter(str_detect(Molecule, "C13", negate = TRUE))|>#Exclude the calibration MCCPs
+      filter(str_detect(Molecule, "IS", negate = TRUE)) |> #Exclude the calibration IS
+      filter(str_detect(Molecule, "RS", negate = TRUE)) #Exclude the calibration RS
 
 ##########################################PREPARE DATASET FOR PATTERN RECONSTRUCTION#################
 {

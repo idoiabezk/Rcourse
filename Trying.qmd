@@ -202,6 +202,46 @@ fig
 
 ```
 
+```{r}
+library(dplyr)  # for data manipulation functions
+
+# Calculate standard deviation for each group (Homologue)
+std_deviation <- all_results_df_SCCPs  |> 
+  group_by(Homologue)  |> 
+  summarise(std_dev = sd(Relative_distribution))
+
+# Merge the standard deviation values with the main data frame
+all_results_df_SCCPs <- merge(all_results_df_SCCPs, std_deviation, by = "Homologue")
+
+# Create the plot
+fig <- plot_ly(
+  x = all_results_df_SCCPs$Homologue, 
+  y = all_results_df_SCCPs$Relative_distribution, 
+  type = "bar",
+  marker = list(color = sapply(all_results_df_SCCPs$`Replicate Name`, function(rep) color_mapping[rep])),  # Set colors
+  error_y = list(type = "data", array = all_results_df_SCCPs$std_dev),  # Error bars representing standard deviation
+  text = paste("Replicate Name: ", all_results_df_SCCPs$`Replicate Name`, "<br>",
+               "Relative Distribution: ", all_results_df_SCCPs$`Relative_distribution`, 
+               "Homologue:", all_results_df_SCCPs$Homologue),
+  color = all_results_df_SCCPs$`Replicate Name`
+)
+
+# Customize the layout
+fig <- fig  |>  
+  layout(
+    title = "Bar Chart Homologue distribution",
+    xaxis = list(title = "Homologue"),
+    yaxis = list(title = "Relative distribution")
+  )
+
+# Show the plot
+fig
+
+
+```
+
+
+
 
 ```{r}
 
