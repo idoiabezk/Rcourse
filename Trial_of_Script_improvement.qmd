@@ -106,13 +106,13 @@ for (std_name in unique_std_names) {
     # Construct the Reference_standard
     replicate_name <- unique(molecule_df$`Replicate Name`)
     replicate_suffix <- sapply(strsplit(as.character(replicate_name), "_"), "[", 2)
-    reference_standard <- paste(type, "C", i, "Cl%", replicate_suffix, sep=" ")
+    reference_standard <- paste0(type, "C", i, "Cl%", replicate_suffix, sep=" ")
     
     # Save results
     result <- data.frame(
-      STD_code = paste(std_name, "-", type),
+      STD_code = paste0(std_name, "-", type),
       Reference_standard = reference_standard,
-      Chain_length = paste("C", i),
+      Chain_length = paste0("C",i),
       Type = type,
       Homologue = molecule_name,
       Response_factor = coef(cal)[2],
@@ -140,19 +140,19 @@ TESTINGB <- TESTING |>
   filter(`Isotope Label Type` == "Quan") |> 
   mutate(
     `Normalized Area` = as.numeric(`Normalized Area`),
-    Chain_length = paste("C", "\\1", `Molecule List`),
-    type = ifelse(
-      Chain_length >= 10 & Chain_length <= 13, "SCCPs",
-      ifelse(
-        Chain_length >= 14 & Chain_length <= 17, "MCCPs",
-        ifelse(Chain_length >= 18 & Chain_length <= 30, "LCCPs", "Unknown") #Create the column type which should contain SCCPs, MCCPs and LCCPs depending on the chain length
-      )
-    )
-  ) |> 
+    Chain_length = str_extract(`Molecule List`, "C\\d+"),
+    Carbon_number = as.numeric(str_remove(Chain_length, "C")),
+    type = case_when(
+      Carbon_number < 10 ~"vSCCPs",
+      Carbon_number >= 10 & Carbon_number <= 13 ~"SCCPs",
+      Carbon_number >= 14 & Carbon_number <= 17 ~"MCCPs",
+      Carbon_number >= 18 & Carbon_number <= 30 ~"LCCPs",
+      Carbon_number > 30 ~"vLCCPs") #Create the column type which should contain SCCPs, MCCPs and LCCPs depending on the chain length
+      )|> 
   rename(Homologue = Molecule) |> 
   filter( `Sample Type` != "Standard" #Filter to remove the standards out of the data frame
   ) |> 
-  filter(str_detect(Homologue, "C9", negate = TRUE))|>#Exclude the calibration vSCCPs
+  filter(str_detect(type, "vSCCPs", negate = TRUE))|>#Exclude the calibration vSCCPs
   filter(str_detect(Homologue, "IS", negate = TRUE)) |> #Exclude the calibration IS
   filter(str_detect(Homologue, "RS", negate = TRUE)) |>  #Exclude the calibration RS
   filter(str_detect(`Replicate Name`, "Std", negate = TRUE)) #Exclude the calibration standards
@@ -197,7 +197,7 @@ all_plots <- list()
 unique_sample_names <- unique(TESTINGB$`Replicate Name`)
 
 # Iterate over each unique sample name
-for (sample_name in unique_sample_names) {
+for (sample_name in 1:length(unique_sample_names)) {
   # Get the corresponding sample data frame, now I will use sample_df for further procesing
   sample_df <- list_of_samples[[sample_name]]
   
