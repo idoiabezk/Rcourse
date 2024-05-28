@@ -173,9 +173,35 @@ list_of_samples <- split(TESTINGB, TESTINGB$`Replicate Name`)
 {
   # Rename the file of the standards that we have created previous for calibration so it will fit the script
   input <- cal_results
-  input$STD_code <- as.factor(input$STD_code)
+  input$Type <- as.factor(input$Type)
   
-  # Create all possible binary combinations between given calibration sets
+  # Initialize an empty list to store results for all standards
+SCCP_MCCP_combinations <- list()
+
+# Group the standards
+input <- split(input, input$Type)
+SCCPs_MCCPs <- unique(filtered_data$STD_code)
+
+for (i in SCCPs_MCCPs) {
+  SCCPs_MCCPs_df <- list_of_std[[i]]
+  SCCPs_MCCPs_df$STD_code <- as.factor(SCCPs_MCCPs_df$STD_code)
+  Combinations <- combn(x = levels(SCCPs_MCCPs_df$STD_code), m = 2, FUN = NULL, simplify = TRUE)
+  SCCP_MCCP_combinations <- append(SCCP_MCCP_combinations, list(Combinations))
+
+  }
+}
+  
+
+
+
+
+
+
+
+  
+  
+# Create all possible binary combinations between given calibration sets
+  
   Combinations <- combn(x = levels(input$STD_code), m = 2, FUN = NULL, simplify = TRUE)
   
   # Store sum RFs for each group CP standard
