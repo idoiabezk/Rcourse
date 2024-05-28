@@ -180,7 +180,7 @@ SCCP_MCCP_combinations <- list()
 
 # Group the standards
 input <- split(input, input$Type)
-SCCPs_MCCPs <- unique(filtered_data$STD_code)
+SCCPs_MCCPs <- unique(input$STD_code)
 
 for (i in SCCPs_MCCPs) {
   SCCPs_MCCPs_df <- list_of_std[[i]]
