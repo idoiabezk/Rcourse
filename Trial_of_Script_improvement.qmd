@@ -179,31 +179,21 @@ list_of_samples <- split(TESTINGB, TESTINGB$`Replicate Name`)
 SCCP_MCCP_combinations <- list()
 
 # Group the standards
-input <- split(input, input$Type)
-SCCPs_MCCPs <- unique(input$STD_code)
+input_list <- split(input, input$Type)
+SCCPs_MCCPs <- unique(input$Type)
 
 for (i in SCCPs_MCCPs) {
-  SCCPs_MCCPs_df <- list_of_std[[i]]
+  SCCPs_MCCPs_df <- input_list[[i]]
   SCCPs_MCCPs_df$STD_code <- as.factor(SCCPs_MCCPs_df$STD_code)
   Combinations <- combn(x = levels(SCCPs_MCCPs_df$STD_code), m = 2, FUN = NULL, simplify = TRUE)
   SCCP_MCCP_combinations <- append(SCCP_MCCP_combinations, list(Combinations))
 
   }
-}
-  
+
+# Combine all results into a single data frame
+Combinations <- do.call(cbind, SCCP_MCCP_combinations)
 
 
-
-
-
-
-
-  
-  
-# Create all possible binary combinations between given calibration sets
-  
-  Combinations <- combn(x = levels(input$STD_code), m = 2, FUN = NULL, simplify = TRUE)
-  
   # Store sum RFs for each group CP standard
   input <- input |> 
     group_by(Reference_standard) |> 
