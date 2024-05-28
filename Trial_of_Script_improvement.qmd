@@ -239,34 +239,57 @@ for (sample_name in 1:length(unique_sample_names)) {
   results <- sample_df
   results[c("Comp_1", "Comp_2", "Fraction_Comp_1", "Simulated_pattern")] <- NA
   
-  # Deconvolution of homologue patterns (adjust your loop accordingly)
-  for (i in 1:length(levels(sample_df$Type))) {
-REF <- sample_df$Relative_distribution[sample_df$Type == levels(input$Type)[i]]
+
+#Deconvolation of homologue patterns
+
+for (i in 1:length(levels(sample_df$Type))) {
+REF <- sample$Relative_distribution[sample_df$Type == levels(input$Type)[i]]
 Distance <- 100
 for (z in 1:length(Combinations[1,])){                                     
 C_1 <- subset(input,subset = (STD_code == Combinations[1,z] & Type == levels(sample_df$Type)[i]))
 C_2 <- subset(input,subset = (STD_code == Combinations[2,z] & Type == levels(sample_df$Type)[i]))
+for (j in 1:100) {
+  Combo <- (C_1$Response_factor*j+C_2$Response_factor*(100-j))/sum((C_1$Response_factor*j+C_2$Response_factor*(100-j)), na.rm=TRUE)
+  if (Distance > (sum(sqrt((REF-Combo)^2)))) {
+    results$Comp_1[results$Chain_length == levels(sample$Chain_length)[i]] <- as.character(C_1$STD_code)
+    results$Comp_2[results$Chain_length == levels(sample$Chain_length)[i]] <- as.character(C_2$STD_code)
+    results$Fraction_Comp_1 <- j
+    results$Simulated_pattern[results$Chain_length == levels(input$Chain_length)[i]] <- Combo
+    Distance <- sum(sqrt((REF-Combo)^2))
+  }
+}
+}
+}  
+
+    # Deconvolution of homologue patterns (adjust your loop accordingly)
+ # for (i in 1:length(levels(sample_df$Type))) {
+#REF <- sample_df$Relative_distribution[sample_df$Type == levels(input$Type)[i]]
+#Distance <- 100
+
+#for (z in 1:length(Combinations[1,])){                                     
+#C_1 <- subset(input,subset = (STD_code == Combinations[1,z] & Type == levels(sample_df$Type)[i]))
+#C_2 <- subset(input,subset = (STD_code == Combinations[2,z] & Type == levels(sample_df$Type)[i]))
  
   
-  for (z in 1:length(Combinations[1,])) {
-    C_1 <- subset(input, subset = (STD_code == Combinations[1, z]))
-    C_2 <- subset(input, subset = (STD_code == Combinations[2, z]))
+  #for (z in 1:length(Combinations[1,])) {
+    #C_1 <- subset(input, subset = (STD_code == Combinations[1, z]))
+    #C_2 <- subset(input, subset = (STD_code == Combinations[2, z]))
     
-    for (j in 1:100) {
-      Combo <- (C_1$Response_factor * j + C_2$Response_factor * (100 - j)) / sum((C_1$Response_factor * j + C_2$Response_factor * (100 - j)), na.rm = TRUE)
+    #for (j in 1:100) {
+      #Combo <- (C_1$Response_factor * j + C_2$Response_factor * (100 - j)) / sum((C_1$Response_factor * j + C_2$Response_factor * (100 - j)), na.rm = TRUE)
       
       # Check for NA values in REF or Combo before comparison
-      if (!any(is.na(REF)) && !any(is.na(Combo)) && Distance > (sum(sqrt((REF - Combo)^2)))) {
-        results$Comp_1 <- as.character(C_1$STD_code)
-        results$Comp_2 <- as.character(C_2$STD_code)
-        results$Fraction_Comp_1 <- j
-        results$Simulated_pattern <- Combo
-        Distance <- sum(sqrt((REF - Combo)^2))
-      }
-    }
-  }
-} 
-  
+      #if (!any(is.na(REF)) && !any(is.na(Combo)) && Distance > (sum(sqrt((REF - Combo)^2)))) {
+        #results$Comp_1 <- as.character(C_1$STD_code)
+       # results$Comp_2 <- as.character(C_2$STD_code)
+      #  results$Fraction_Comp_1 <- j
+     #   results$Simulated_pattern <- Combo
+    #    Distance <- sum(sqrt((REF - Combo)^2))
+   #   }
+  #  }
+ # }
+#} 
+
   # Calculate concentrations (ng per microliter)
   results$RF_1st <- NA
   results$RF_2nd <- NA
@@ -341,7 +364,7 @@ C_2 <- subset(input,subset = (STD_code == Combinations[2,z] & Type == levels(sam
   print(results_output_SCCPs)
   
 }
-}
+
 #########################################VIEW RESULTS############################################
 
 #View Overview
