@@ -543,7 +543,7 @@ all_plots[["NIST_R3"]]
 
 
 ######################################################If I prepare combinations in columns 1:3 for SCCPs and 4:6 for MCCPs#############################################
-  ####################################################Separating different  deppeding on conditioning #########################################
+  ####################################################Separating different  depending on conditioning #########################################
  ## The script was made for quantifying one sample at the time, so I changed it to iterate for all the data frames of the samples
 
 # Initialize an empty list to store results for all samples
@@ -589,14 +589,14 @@ input <- input |>
 
 # Deconvolution of homologue patterns
 
-for (i in 1:length(levels(sample_df$Type))) {
+for (i in 1:length(sample_df$Type)) {
   REF <- sample_df$Relative_distribution[sample_df$Type == levels(sample_df$Type)[i]]
   Distance <- 100
   
   for (z in 1:length(Combinations[1, ])) { 
      
-    C_1 <- subset(input, subset = (STD_code == Combinations[1, z] & Type == levels(sample_df$Type)[i]))
-    C_2 <- subset(input, subset = (STD_code == Combinations[2, z] & Type == levels(sample_df$Type)[i]))
+    C_1 <- subset(input, subset = (STD_code == Combinations[1, z] & Type == sample_df$Type[i]))
+    C_2 <- subset(input, subset = (STD_code == Combinations[2, z] & Type == sample_df$Type[i]))
     
     for (j in 1:100) {
       Combo <- (C_1$Response_factor * j + C_2$Response_factor * (100 - j)) / sum((C_1$Response_factor * j + C_2$Response_factor * (100 - j)), na.rm = TRUE)
